@@ -5,40 +5,23 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { signIn, signOut, getCsrfToken } from "next-auth/react";
-import sdk, { SignIn as SignInCore } from "@farcaster/frame-sdk";
-import {
-  useAccount,
-  useSendTransaction,
-  useSignTypedData,
-  useWaitForTransactionReceipt,
-  useDisconnect,
-  useConnect,
-  useSwitchChain,
-  useChainId,
-} from "wagmi";
+import { signIn, signOut } from "next-auth/react";
+import sdk from "@farcaster/frame-sdk";
+import { useAccount, useSendTransaction, useSignTypedData, useWaitForTransactionReceipt, useDisconnect, useConnect, useSwitchChain, useChainId } from "wagmi";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 import { ShareButton } from "./ui/Share";
 import { CheckCircle, Users, TrendingUp, Badge, Plus } from "lucide-react";
-import { config } from "~/components/providers/WagmiProvider";
 import { Button } from "~/components/ui/Button";
 import { truncateAddress } from "~/lib/truncateAddress";
 import { base, degen, mainnet, optimism, unichain } from "wagmi/chains";
 import { BaseError, UserRejectedRequestError } from "viem";
-import { useSession } from "next-auth/react";
 import { useMiniApp } from "@neynar/react";
-import { APP_NAME } from "~/lib/constants";
+import { APP_NAME, APP_URL } from "~/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import Link from "next/link";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "~/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
 import { Label } from "~/components/ui/label";
@@ -51,26 +34,22 @@ interface NeynarUser {
 }
 
 export default function Demo({ title = "Flash Poll" }: { title?: string }) {
-  const {
-    isSDKLoaded,
-    context,
-    added,
-    notificationDetails,
-    actions,
-  } = useMiniApp();
+  const { isSDKLoaded, context, added, notificationDetails, actions } = useMiniApp();
   const [isContextOpen, setIsContextOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("home");
   const [txHash, setTxHash] = useState<string | null>(null);
   const [sendNotificationResult, setSendNotificationResult] = useState("");
-  const [copied, setCopied] = useState(false);
   const [neynarUser, setNeynarUser] = useState<NeynarUser | null>(null);
   const [isCreatePollOpen, setIsCreatePollOpen] = useState(false);
   const [pollForm, setPollForm] = useState({
     title: "",
     description: "",
-    options: [{ text: "" }, { text: "" }], // Start with 2 options
+    options: [{ text: "" }, { text: "" }],
   });
   const [createPollError, setCreatePollError] = useState<string | null>(null);
+  const [sharedCast, setSharedCast] = useState<any | null>(null);
+  const [isShareContext, setIsShareContext] = useState(false);
+  const [shareError, setShareError] = useState<string | null>(null);
 
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
@@ -111,34 +90,25 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
     fetchNeynarUserObject();
   }, [context?.user?.fid]);
 
+  // Handle shared casts
+  useEffect(() => {
+    const checkSharedCast = async () => {
+      const context = await sdk.context;
+      if (context?.location?.type === "cast_share") {
+        setIsShareContext(true);
+        setSharedCast(context.location.cast);
+      }
+    };
+    checkSharedCast();
+  }, []);
+
   // Wallet-related hooks
-  const {
-    sendTransaction,
-    error: sendTxError,
-    isError: isSendTxError,
-    isPending: isSendTxPending,
-  } = useSendTransaction();
-
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({
-      hash: txHash as `0x${string}`,
-    });
-
-  const {
-    signTypedData,
-    error: signTypedError,
-    isError: isSignTypedError,
-    isPending: isSignTypedPending,
-  } = useSignTypedData();
-
+  const { sendTransaction, error: sendTxError, isError: isSendTxError, isPending: isSendTxPending } = useSendTransaction();
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash: txHash as `0x${string}` });
+  const { signTypedData, error: signTypedError, isError: isSignTypedError, isPending: isSignTypedPending } = useSignTypedData();
   const { disconnect } = useDisconnect();
   const { connect, connectors } = useConnect();
-  const {
-    switchChain,
-    error: switchChainError,
-    isError: isSwitchChainError,
-    isPending: isSwitchChainPending,
-  } = useSwitchChain();
+  const { switchChain, error: switchChainError, isError: isSwitchChainError, isPending: isSwitchChainPending } = useSwitchChain();
 
   const nextChain = useMemo(() => {
     if (chainId === base.id) return optimism;
@@ -292,6 +262,17 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
     );
     const isVoting = votingStates[poll._id] || false;
 
+    const castConfig = {
+      text: `Check out this poll: ${poll.title} on Flash Poll! @1 @2`,
+      bestFriends: true,
+      embeds: [
+        {
+          path: `/poll/${poll._id}`,
+          imageUrl: async () => `${APP_URL}/api/opengraph-image?pollId=${poll._id}`,
+        },
+      ],
+    };
+
     return (
       <Card className="w-full max-w-2xl mx-auto bg-white/80 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
         <CardHeader className="pb-4">
@@ -384,6 +365,27 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
               </p>
             </div>
           )}
+          <div className="mt-4 flex gap-2">
+            <ShareButton
+              buttonText="Share Poll"
+              cast={castConfig}
+              className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
+              isLoading={false}
+            />
+            {!context?.user?.fid && (
+              <Button
+                onClick={() => setShareError("Please sign in with Farcaster to share")}
+                className="hidden"
+                tabIndex={-1}
+                aria-hidden="true"
+              >
+                Hidden
+              </Button>
+            )}
+            {shareError && (
+              <p className="text-red-500 text-sm mt-2">{shareError}</p>
+            )}
+          </div>
         </CardContent>
       </Card>
     );
@@ -391,6 +393,39 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
 
   if (!isSDKLoaded) {
     return <div>Loading...</div>;
+  }
+
+  // Handle shared cast context
+  if (isShareContext && sharedCast) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center">
+        <Card className="w-full max-w-md mx-auto bg-white/80 backdrop-blur-sm border-0 shadow-xl p-6">
+          <CardHeader>
+            <CardTitle>Shared Cast</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-700">
+              Cast shared by @{sharedCast.author.username || "unknown"}
+            </p>
+            <p className="text-gray-600 mt-2">{sharedCast.text}</p>
+            {sharedCast.embeds && sharedCast.embeds.length > 0 && (
+              <p className="text-gray-500 mt-2">
+                Embedded URL: <a href={sharedCast.embeds[0]} className="text-blue-600 underline">{sharedCast.embeds[0]}</a>
+              </p>
+            )}
+            <Button
+              onClick={() => {
+                setIsShareContext(false);
+                setSharedCast(null);
+              }}
+              className="mt-4 w-full bg-gray-500 hover:bg-gray-600"
+            >
+              Back to Polls
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
@@ -404,7 +439,7 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
             <p className="text-gray-600 mt-2 text-sm md:text-base">
               Share your opinion and see what others think
             </p>
-            <div className="mt-4">
+            <div className="mt-4 flex gap-4 justify-center">
               <Button
                 onClick={() => setIsCreatePollOpen(true)}
                 disabled={!context?.user?.fid}
@@ -413,6 +448,11 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
                 <Plus className="w-4 h-4 mr-2" />
                 Create Poll
               </Button>
+              {!context?.user?.fid && (
+                <Button onClick={() => signIn("farcaster")}>
+                  Sign In with Farcaster
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -426,7 +466,13 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
           )}
         </div>
       </div>
-      <Dialog open={isCreatePollOpen} onOpenChange={setIsCreatePollOpen}>
+      <Dialog
+        open={isCreatePollOpen}
+        onOpenChange={(open) => {
+          setIsCreatePollOpen(open);
+          if (!open) setCreatePollError(null);
+        }}
+      >
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Create a New Poll</DialogTitle>
@@ -437,9 +483,7 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
               <Input
                 id="title"
                 value={pollForm.title}
-                onChange={(e) =>
-                  setPollForm((prev) => ({ ...prev, title: e.target.value }))
-                }
+                onChange={(e) => setPollForm((prev) => ({ ...prev, title: e.target.value }))}
                 placeholder="Enter poll title"
               />
             </div>
@@ -448,9 +492,7 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
               <Textarea
                 id="description"
                 value={pollForm.description}
-                onChange={(e) =>
-                  setPollForm((prev) => ({ ...prev, description: e.target.value }))
-                }
+                onChange={(e) => setPollForm((prev) => ({ ...prev, description: e.target.value }))}
                 placeholder="Enter poll description"
               />
             </div>
@@ -492,9 +534,7 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
       </Dialog>
       <div className="bg-white/50 backdrop-blur-sm border-t border-purple-100 mt-16">
         <div className="container mx-auto px-4 py-8 text-center">
-          <p className="text-gray-500 text-sm">
-            Powered by Lisk
-          </p>
+          <p className="text-gray-500 text-sm">Powered by Lisk</p>
         </div>
       </div>
     </div>

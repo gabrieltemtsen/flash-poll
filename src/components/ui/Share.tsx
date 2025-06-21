@@ -17,13 +17,14 @@ interface CastConfig extends Omit<any, 'embeds'> {
 }
 
 interface ShareButtonProps {
-  buttonText: string;
+  buttonText?: string; // Made optional to allow children-only usage
   cast: CastConfig;
   className?: string;
   isLoading?: boolean;
+  children?: React.ReactNode; // Added children prop
 }
 
-export function ShareButton({ buttonText, cast, className = '', isLoading = false }: ShareButtonProps) {
+export function ShareButton({ buttonText, cast, className = '', isLoading = false, children }: ShareButtonProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [bestFriends, setBestFriends] = useState<{ fid: number; username: string; }[] | null>(null);
   const [isLoadingBestFriends, setIsLoadingBestFriends] = useState(false);
@@ -112,7 +113,7 @@ export function ShareButton({ buttonText, cast, className = '', isLoading = fals
       isLoading={isLoading || isProcessing}
       disabled={isLoadingBestFriends}
     >
-      {buttonText}
+      {children || buttonText}
     </Button>
   );
 }
