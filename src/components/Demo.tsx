@@ -331,7 +331,6 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
             <p className="text-gray-600 mt-2 text-sm md:text-base">
               Share your opinion and see what others think
             </p>
-            <SignIn />
           </div>
         </div>
       </div>
@@ -347,130 +346,10 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
       <div className="bg-white/50 backdrop-blur-sm border-t border-purple-100 mt-16">
         <div className="container mx-auto px-4 py-8 text-center">
           <p className="text-gray-500 text-sm">
-            Powered by modern web technologies • Real-time results
+            Powered by Lisk
           </p>
         </div>
       </div>
-    </div>
-  );
-}
-
-function SignIn() {
-  const [signingIn, setSigningIn] = useState(false);
-  const [signingOut, setSigningOut] = useState(false);
-  const [signInResult, setSignInResult] = useState<SignInCore.SignInResult>();
-  const [signInFailure, setSignInFailure] = useState<string>();
-  // Extend session user type to include optional image and name
-  interface SessionUser {
-    fid: number;
-    image?: string;
-    name?: string;
-    [key: string]: any;
-  }
-  interface SessionData {
-    user?: SessionUser;
-    [key: string]: any;
-  }
-  const { data: session, status } = useSession() as { data: SessionData; status: string };
-
-  const getNonce = useCallback(async () => {
-    const nonce = await getCsrfToken();
-    if (!nonce) throw new Error("Unable to generate nonce");
-    return nonce;
-  }, []);
-
-  const handleSignIn = useCallback(async () => {
-    try {
-      setSigningIn(true);
-      setSignInFailure(undefined);
-      const nonce = await getNonce();
-      const result: any = await sdk.actions.signIn({ nonce });
-      setSignInResult(result);
-      await signIn("farcaster", {
-        message: result.message,
-        signature: result.signature,
-        name: result.username,
-        pfp: result.pfpUrl,
-        redirect: false,
-      });
-    } catch (e) {
-      if (e instanceof SignInCore.RejectedByUser) {
-        setSignInFailure("Rejected by user");
-      } else {
-        console.error("Sign in error:", e);
-        setSignInFailure("Unknown error");
-      }
-    } finally {
-      setSigningIn(false);
-    }
-  }, [getNonce]);
-
-  const handleSignOut = useCallback(async () => {
-    try {
-      setSigningOut(true);
-      await signOut({ redirect: false });
-      setSignInResult(undefined);
-    } finally {
-      setSigningOut(false);
-    }
-  }, []);
-
-  return (
-    <div className="mt-4">
-      {status !== "authenticated" ? (
-        <Button
-          onClick={handleSignIn}
-          disabled={signingIn}
-          className="bg-purple-600 hover:bg-purple-700 text-white"
-        >
-          {signingIn ? (
-            <span className="flex items-center gap-2">
-              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-              Signing in...
-            </span>
-          ) : (
-            "Sign in with Farcaster"
-          )}
-        </Button>
-      ) : (
-        <div className="flex items-center gap-4">
-          {session.user?.image && (
-            <img
-              src={session.user.image}
-              alt="Profile"
-              className="w-8 h-8 rounded-full"
-            />
-          )}
-          <span className="font-medium text-gray-700">
-            {session.user?.name || "Farcaster User"}
-          </span>
-          <Button
-            onClick={handleSignOut}
-            disabled={signingOut}
-            className="text-sm"
-          >
-            {signingOut ? "Signing out..." : "Sign out"}
-          </Button>
-        </div>
-      )}
-
-      {signInFailure && (
-        <div className="mt-2 text-red-500 text-sm">{signInFailure}</div>
-      )}
     </div>
   );
 }
