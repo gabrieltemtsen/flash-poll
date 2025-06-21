@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
@@ -17,13 +18,9 @@ import {
   useSwitchChain,
   useChainId,
 } from "wagmi";
-import {
-  useConnection as useSolanaConnection,
-  useWallet as useSolanaWallet,
-} from '@solana/wallet-adapter-react';
-import { useHasSolanaProvider } from "./providers/SafeFarcasterSolanaProvider";
-import { ShareButton } from "./ui/Share";
 
+import { ShareButton } from "./ui/Share";
+import { CheckCircle, Users, TrendingUp, Badge } from 'lucide-react';
 import { config } from "~/components/providers/WagmiProvider";
 import { Button } from "~/components/ui/Button";
 import { truncateAddress } from "~/lib/truncateAddress";
@@ -31,16 +28,32 @@ import { base, degen, mainnet, optimism, unichain } from "wagmi/chains";
 import { BaseError, UserRejectedRequestError } from "viem";
 import { useSession } from "next-auth/react";
 import { useMiniApp } from "@neynar/react";
-import { PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
 import { Header } from "~/components/ui/Header";
 import { Footer } from "~/components/ui/Footer";
 import { USE_WALLET, APP_NAME } from "~/lib/constants";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
 export type Tab = 'home' | 'actions' | 'context' | 'wallet';
 
 interface NeynarUser {
   fid: number;
   score: number;
+}
+
+interface PollOption {
+  id: string;
+  text: string;
+  votes: number;
+}
+
+interface Poll {
+  id: string;
+  title: string;
+  description: string;
+  options: PollOption[];
+  totalVotes: number;
+  hasVoted: boolean;
+  userVote?: string;
 }
 
 export default function Demo(
@@ -62,9 +75,6 @@ export default function Demo(
 
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
-  const hasSolanaProvider = useHasSolanaProvider();
-  const solanaWallet = useSolanaWallet();
-  const { publicKey: solanaPublicKey } = solanaWallet;
 
   useEffect(() => {
     console.log("isSDKLoaded", isSDKLoaded);
@@ -73,6 +83,176 @@ export default function Demo(
     console.log("isConnected", isConnected);
     console.log("chainId", chainId);
   }, [context, address, isConnected, chainId, isSDKLoaded]);
+
+  const [polls, setPolls] = useState<Poll[]>([
+    {
+      id: '1',
+      title: 'What\'s your favorite programming language?',
+      description: 'Help us understand the community preferences',
+      options: [
+        { id: 'js', text: 'JavaScript', votes: 1247 },
+        { id: 'ts', text: 'TypeScript', votes: 892 },
+        { id: 'py', text: 'Python', votes: 756 },
+        { id: 'rust', text: 'Rust', votes: 423 },
+        { id: 'go', text: 'Go', votes: 312 }
+      ],
+      totalVotes: 3630,
+      hasVoted: false
+    },
+    {
+      id: '2',
+      title: 'Best time for remote work?',
+      description: 'When are you most productive working from home?',
+      options: [
+        { id: 'morning', text: 'Early Morning (6-9 AM)', votes: 687 },
+        { id: 'midday', text: 'Mid-day (9 AM-1 PM)', votes: 1203 },
+        { id: 'afternoon', text: 'Afternoon (1-5 PM)', votes: 892 },
+        { id: 'evening', text: 'Evening (5-9 PM)', votes: 445 }
+      ],
+      totalVotes: 3227,
+      hasVoted: false
+    }
+  ]);
+
+  const [votingStates, setVotingStates] = useState<Record<string, boolean>>({});
+
+  const handleVote = async (pollId: string, optionId: string) => {
+    setVotingStates(prev => ({ ...prev, [pollId]: true }));
+    
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    setPolls(prevPolls => 
+      prevPolls.map(poll => {
+        if (poll.id === pollId) {
+          const updatedOptions = poll.options.map((option: any) => 
+            option.id === optionId 
+              ? { ...option, votes: option.votes + 1 }
+              : option
+          );
+          
+          return {
+            ...poll,
+            options: updatedOptions,
+            totalVotes: poll.totalVotes + 1,
+            hasVoted: true,
+            userVote: optionId
+          };
+        }
+        return poll;
+      })
+    );
+    
+    setVotingStates(prev => ({ ...prev, [pollId]: false }));
+  };
+
+  const getPercentage = (votes: number, total: number): number => {
+    return total > 0 ? Math.round((votes / total) * 100) : 0;
+  };
+
+  const PollCard = ({ poll }: { poll: Poll }) => {
+    const isVoting = votingStates[poll.id] || false;
+    
+    return (
+      <Card className="w-full max-w-2xl mx-auto bg-white/80 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+        <CardHeader className="pb-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <CardTitle className="text-xl font-bold text-gray-900 leading-tight">
+                {poll.title}
+              </CardTitle>
+              <p className="text-gray-600 mt-2 text-sm">{poll.description}</p>
+            </div>
+            <Badge 
+              className="bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors shrink-0"
+            >
+              <Users className="w-3 h-3 mr-1" />
+              {poll.totalVotes.toLocaleString()}
+            </Badge>
+          </div>
+        </CardHeader>
+        
+        <CardContent className="space-y-3">
+          {poll.options.map((option: any, index: any) => {
+            const percentage = getPercentage(option.votes, poll.totalVotes);
+            const isUserVote = poll.userVote === option.id;
+            
+            return (
+              <div key={option.id} className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">
+                    {option.text}
+                  </span>
+                  {poll.hasVoted && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">
+                        {option.votes.toLocaleString()} votes
+                      </span>
+                      <span className="text-sm font-semibold text-purple-600">
+                        {percentage}%
+                      </span>
+                      {isUserVote && (
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                      )}
+                    </div>
+                  )}
+                </div>
+                
+                {poll.hasVoted ? (
+                  <div className="relative">
+                    <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                      <div 
+                        className={`h-full rounded-full transition-all duration-1000 ease-out ${
+                          isUserVote 
+                            ? 'bg-gradient-to-r from-green-400 to-green-500' 
+                            : 'bg-gradient-to-r from-purple-400 to-purple-500'
+                        }`}
+                        style={{ 
+                          width: `${percentage}%`,
+                          animationDelay: `${index * 100}ms`
+                        }}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <Button
+                    onClick={() => handleVote(poll.id, option.id)}
+                    disabled={isVoting}
+                    className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white border-0 h-12 rounded-xl font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                  >
+                    {isVoting ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Voting...
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4" />
+                        Vote for {option.text}
+                      </div>
+                    )}
+                  </Button>
+                )}
+              </div>
+            );
+          })}
+          
+          {poll.hasVoted && (
+            <div className="mt-6 p-4 bg-green-50 rounded-xl border border-green-200">
+              <div className="flex items-center gap-2 text-green-700">
+                <CheckCircle className="w-5 h-5" />
+                <span className="font-medium">Thank you for voting!</span>
+              </div>
+              <p className="text-sm text-green-600 mt-1">
+                Your vote has been recorded. Results are updated in real-time.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
+
 
   // Fetch Neynar user object when context is available
   useEffect(() => {
@@ -213,409 +393,43 @@ export default function Demo(
   }
 
   return (
-    <div
-      style={{
-        paddingTop: context?.client.safeAreaInsets?.top ?? 0,
-        paddingBottom: context?.client.safeAreaInsets?.bottom ?? 0,
-        paddingLeft: context?.client.safeAreaInsets?.left ?? 0,
-        paddingRight: context?.client.safeAreaInsets?.right ?? 0,
-      }}
-    >
-      <div className="mx-auto py-2 px-4 pb-20">
-        <Header neynarUser={neynarUser} />
-
-        <h1 className="text-2xl font-bold text-center mb-4">{title}</h1>
-
-        {activeTab === 'home' && (
-          <div className="flex items-center justify-center h-[calc(100vh-200px)] px-6">
-            <div className="text-center w-full max-w-md mx-auto">
-              <p className="text-lg mb-2">Put your content here!</p>
-              <p className="text-sm text-gray-500">Powered by Neynar 🪐</p>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+      {/* Header */}
+      <div className="bg-white/70 backdrop-blur-md border-b border-purple-100 sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-6">
+          <div className="text-center">
+            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              Fast Poll
+            </h1>
+            <p className="text-gray-600 mt-2 text-sm md:text-base">
+              Share your opinion and see what others think
+            </p>
           </div>
-        )}
+        </div>
+      </div>
 
-        {activeTab === 'actions' && (
-          <div className="space-y-3 px-6 w-full max-w-md mx-auto">
-            <ShareButton 
-              buttonText="Share Mini App"
-              cast={{
-                text: "Check out this awesome frame @1 @2 @3! 🚀🪐",
-                bestFriends: true,
-                embeds: [`${process.env.NEXT_PUBLIC_URL}/share/${context?.user?.fid || ''}`]
-              }}
-              className="w-full"
-            />
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="space-y-8">
+          {polls.map(poll => (
+            <PollCard key={poll.id} poll={poll} />
+          ))}
+        </div>
+      </div>
 
-            <SignIn />
-
-            <Button onClick={() => actions.openUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ")} className="w-full">Open Link</Button>
-
-            <Button onClick={actions.close} className="w-full">Close Mini App</Button>
-
-            <Button onClick={actions.addMiniApp} disabled={added} className="w-full">
-              Add Mini App to Client
-            </Button>
-
-            {sendNotificationResult && (
-              <div className="text-sm w-full">
-                Send notification result: {sendNotificationResult}
-              </div>
-            )}
-            <Button onClick={sendNotification} disabled={!notificationDetails} className="w-full">
-              Send notification
-            </Button>
-
-            <Button 
-              onClick={async () => {
-                if (context?.user?.fid) {
-                  const shareUrl = `${process.env.NEXT_PUBLIC_URL}/share/${context.user.fid}`;
-                  await navigator.clipboard.writeText(shareUrl);
-                  setCopied(true);
-                  setTimeout(() => setCopied(false), 2000);
-                }
-              }}
-              disabled={!context?.user?.fid}
-              className="w-full"
-            >
-              {copied ? "Copied!" : "Copy share URL"}
-            </Button>
-          </div>
-        )}
-
-        {activeTab === 'context' && (
-          <div className="mx-6">
-            <h2 className="text-lg font-semibold mb-2">Context</h2>
-            <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words w-full">
-                {JSON.stringify(context, null, 2)}
-              </pre>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'wallet' && USE_WALLET && (
-          <div className="space-y-3 px-6 w-full max-w-md mx-auto">
-            {address && (
-              <div className="text-xs w-full">
-                Address: <pre className="inline w-full">{truncateAddress(address)}</pre>
-              </div>
-            )}
-
-            {chainId && (
-              <div className="text-xs w-full">
-                Chain ID: <pre className="inline w-full">{chainId}</pre>
-              </div>
-            )}
-
-            {isConnected ? (
-              <Button
-                onClick={() => disconnect()}
-                className="w-full"
-              >
-                Disconnect
-              </Button>
-            ) : context ? (
-              <Button
-                onClick={() => connect({ connector: connectors[0] })}
-                className="w-full"
-              >
-                Connect
-              </Button>
-            ) : (
-              <div className="space-y-3 w-full">
-                <Button
-                  onClick={() => connect({ connector: connectors[1] })}
-                  className="w-full"
-                >
-                  Connect Coinbase Wallet
-                </Button>
-                <Button
-                  onClick={() => connect({ connector: connectors[2] })}
-                  className="w-full"
-                >
-                  Connect MetaMask
-                </Button>
-              </div>
-            )}
-
-            <SignEvmMessage />
-
-            {isConnected && (
-              <>
-                <SendEth />
-                <Button
-                  onClick={sendTx}
-                  disabled={!isConnected || isSendTxPending}
-                  isLoading={isSendTxPending}
-                  className="w-full"
-                >
-                  Send Transaction (contract)
-                </Button>
-                {isSendTxError && renderError(sendTxError)}
-                {txHash && (
-                  <div className="text-xs w-full">
-                    <div>Hash: {truncateAddress(txHash)}</div>
-                    <div>
-                      Status:{" "}
-                      {isConfirming
-                        ? "Confirming..."
-                        : isConfirmed
-                        ? "Confirmed!"
-                        : "Pending"}
-                    </div>
-                  </div>
-                )}
-                <Button
-                  onClick={signTyped}
-                  disabled={!isConnected || isSignTypedPending}
-                  isLoading={isSignTypedPending}
-                  className="w-full"
-                >
-                  Sign Typed Data
-                </Button>
-                {isSignTypedError && renderError(signTypedError)}
-                <Button
-                  onClick={handleSwitchChain}
-                  disabled={isSwitchChainPending}
-                  isLoading={isSwitchChainPending}
-                  className="w-full"
-                >
-                  Switch to {nextChain.name}
-                </Button>
-                {isSwitchChainError && renderError(switchChainError)}
-              </>
-            )}
-          </div>
-        )}
-
-        <Footer activeTab={activeTab} setActiveTab={setActiveTab} showWallet={USE_WALLET} />
+      {/* Footer */}
+      <div className="bg-white/50 backdrop-blur-sm border-t border-purple-100 mt-16">
+        <div className="container mx-auto px-4 py-8 text-center">
+          <p className="text-gray-500 text-sm">
+            Powered by modern web technologies • Real-time results
+          </p>
+        </div>
       </div>
     </div>
   );
 }
 
-// Solana functions inspired by farcaster demo
-// https://github.com/farcasterxyz/frames-v2-demo/blob/main/src/components/Demo.tsx
-function SignSolanaMessage({ signMessage }: { signMessage?: (message: Uint8Array) => Promise<Uint8Array> }) {
-  const [signature, setSignature] = useState<string | undefined>();
-  const [signError, setSignError] = useState<Error | undefined>();
-  const [signPending, setSignPending] = useState(false);
 
-  const handleSignMessage = useCallback(async () => {
-    setSignPending(true);
-    try {
-      if (!signMessage) {
-        throw new Error('no Solana signMessage');
-      }
-      const input = new TextEncoder().encode("Hello from Solana!");
-      const signatureBytes = await signMessage(input);
-      const signature = btoa(String.fromCharCode(...signatureBytes));
-      setSignature(signature);
-      setSignError(undefined);
-    } catch (e) {
-      if (e instanceof Error) {
-        setSignError(e);
-      }
-    } finally {
-      setSignPending(false);
-    }
-  }, [signMessage]);
-
-  return (
-    <>
-      <Button
-        onClick={handleSignMessage}
-        disabled={signPending}
-        isLoading={signPending}
-        className="mb-4"
-      >
-        Sign Message
-      </Button>
-      {signError && renderError(signError)}
-      {signature && (
-        <div className="mt-2 text-xs">
-          <div>Signature: {signature}</div>
-        </div>
-      )}
-    </>
-  );
-}
-
-function SendSolana() {
-  const [state, setState] = useState<
-    | { status: 'none' }
-    | { status: 'pending' }
-    | { status: 'error'; error: Error }
-    | { status: 'success'; signature: string }
-  >({ status: 'none' });
-
-  const { connection: solanaConnection } = useSolanaConnection();
-  const { sendTransaction, publicKey } = useSolanaWallet();
-
-  // This should be replaced but including it from the original demo
-  // https://github.com/farcasterxyz/frames-v2-demo/blob/main/src/components/Demo.tsx#L718
-  const ashoatsPhantomSolanaWallet = 'Ao3gLNZAsbrmnusWVqQCPMrcqNi6jdYgu8T6NCoXXQu1';
-
-  const handleSend = useCallback(async () => {
-    setState({ status: 'pending' });
-    try {
-      if (!publicKey) {
-        throw new Error('no Solana publicKey');
-      }
-
-      const { blockhash } = await solanaConnection.getLatestBlockhash();
-      if (!blockhash) {
-        throw new Error('failed to fetch latest Solana blockhash');
-      }
-
-      const fromPubkeyStr = publicKey.toBase58();
-      const toPubkeyStr = ashoatsPhantomSolanaWallet;
-      const transaction = new Transaction();
-      transaction.add(
-        SystemProgram.transfer({
-          fromPubkey: new PublicKey(fromPubkeyStr),
-          toPubkey: new PublicKey(toPubkeyStr),
-          lamports: 0n,
-        }),
-      );
-      transaction.recentBlockhash = blockhash;
-      transaction.feePayer = new PublicKey(fromPubkeyStr);
-
-      const simulation = await solanaConnection.simulateTransaction(transaction);
-      if (simulation.value.err) {
-        // Gather logs and error details for debugging
-        const logs = simulation.value.logs?.join('\n') ?? 'No logs';
-        const errDetail = JSON.stringify(simulation.value.err);
-        throw new Error(`Simulation failed: ${errDetail}\nLogs:\n${logs}`);
-      }
-      const signature = await sendTransaction(transaction, solanaConnection);
-      setState({ status: 'success', signature });
-    } catch (e) {
-      if (e instanceof Error) {
-        setState({ status: 'error', error: e });
-      } else {
-        setState({ status: 'none' });
-      }
-    }
-  }, [sendTransaction, publicKey, solanaConnection]);
-
-  return (
-    <>
-      <Button
-        onClick={handleSend}
-        disabled={state.status === 'pending'}
-        isLoading={state.status === 'pending'}
-        className="mb-4"
-      >
-        Send Transaction (sol)
-      </Button>
-      {state.status === 'error' && renderError(state.error)}
-      {state.status === 'success' && (
-        <div className="mt-2 text-xs">
-          <div>Hash: {truncateAddress(state.signature)}</div>
-        </div>
-      )}
-    </>
-  );
-}
-
-function SignEvmMessage() {
-  const { isConnected } = useAccount();
-  const { connectAsync } = useConnect();
-  const {
-    signMessage,
-    data: signature,
-    error: signError,
-    isError: isSignError,
-    isPending: isSignPending,
-  } = useSignMessage();
-
-  const handleSignMessage = useCallback(async () => {
-    if (!isConnected) {
-      await connectAsync({
-        chainId: base.id,
-        connector: config.connectors[0],
-      });
-    }
-
-    signMessage({ message: `Hello from ${APP_NAME}!` });
-  }, [connectAsync, isConnected, signMessage]);
-
-  return (
-    <>
-      <Button
-        onClick={handleSignMessage}
-        disabled={isSignPending}
-        isLoading={isSignPending}
-      >
-        Sign Message
-      </Button>
-      {isSignError && renderError(signError)}
-      {signature && (
-        <div className="mt-2 text-xs">
-          <div>Signature: {signature}</div>
-        </div>
-      )}
-    </>
-  );
-}
-
-function SendEth() {
-  const { isConnected, chainId } = useAccount();
-  const {
-    sendTransaction,
-    data,
-    error: sendTxError,
-    isError: isSendTxError,
-    isPending: isSendTxPending,
-  } = useSendTransaction();
-
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({
-      hash: data,
-    });
-
-  const toAddr = useMemo(() => {
-    // Protocol guild address
-    return chainId === base.id
-      ? "0x32e3C7fD24e175701A35c224f2238d18439C7dBC"
-      : "0xB3d8d7887693a9852734b4D25e9C0Bb35Ba8a830";
-  }, [chainId]);
-
-  const handleSend = useCallback(() => {
-    sendTransaction({
-      to: toAddr,
-      value: 1n,
-    });
-  }, [toAddr, sendTransaction]);
-
-  return (
-    <>
-      <Button
-        onClick={handleSend}
-        disabled={!isConnected || isSendTxPending}
-        isLoading={isSendTxPending}
-      >
-        Send Transaction (eth)
-      </Button>
-      {isSendTxError && renderError(sendTxError)}
-      {data && (
-        <div className="mt-2 text-xs">
-          <div>Hash: {truncateAddress(data)}</div>
-          <div>
-            Status:{" "}
-            {isConfirming
-              ? "Confirming..."
-              : isConfirmed
-              ? "Confirmed!"
-              : "Pending"}
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
 
 function SignIn() {
   const [signingIn, setSigningIn] = useState(false);
