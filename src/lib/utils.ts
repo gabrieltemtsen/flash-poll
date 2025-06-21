@@ -48,10 +48,10 @@ export function getMiniAppEmbedMetadata(ogImageUrl?: string) {
     version: "next",
     imageUrl: ogImageUrl ?? APP_OG_IMAGE_URL,
     button: {
-      title: 'yah',
+      title: APP_BUTTON_TEXT,
       action: {
         type: "launch_frame",
-        name: APP_NAME || "Flash Polls",
+        name: APP_NAME,
         url: APP_URL,
         splashImageUrl: APP_SPLASH_URL,
         iconUrl: APP_ICON_URL,
