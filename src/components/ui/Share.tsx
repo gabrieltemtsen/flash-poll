@@ -1,9 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useCallback, useState, useEffect } from 'react';
 import { Button } from './Button';
 import { useMiniApp } from '@neynar/react';
-import { type ComposeCast } from "@farcaster/frame-sdk";
 
 interface EmbedConfig {
   path?: string;
@@ -11,7 +11,7 @@ interface EmbedConfig {
   imageUrl?: () => Promise<string>;
 }
 
-interface CastConfig extends Omit<ComposeCast.Options, 'embeds'> {
+interface CastConfig extends Omit<any, 'embeds'> {
   bestFriends?: boolean;
   embeds?: (string | EmbedConfig)[];
 }
@@ -51,7 +51,7 @@ export function ShareButton({ buttonText, cast, className = '', isLoading = fals
       if (cast.bestFriends) {
         if (bestFriends) {
           // Replace @N with usernames, or remove if no matching friend
-          finalText = finalText.replace(/@\d+/g, (match) => {
+          finalText = finalText.replace(/@\d+/g, (match: any) => {
             const friendIndex = parseInt(match.slice(1)) - 1;
             const friend = bestFriends[friendIndex];
             if (friend) {
