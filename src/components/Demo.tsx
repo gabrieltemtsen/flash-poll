@@ -399,7 +399,7 @@ export default function Demo(
         <div className="container mx-auto px-4 py-6">
           <div className="text-center">
             <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              Fast Poll
+              Flash Poll
             </h1>
             <p className="text-gray-600 mt-2 text-sm md:text-base">
               Share your opinion and see what others think

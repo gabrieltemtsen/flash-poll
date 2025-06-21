@@ -1,4 +1,4 @@
-# Fast Poll
+# Flash Poll
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
 [![Built with Convex](https://img.shields.io/badge/Built%20with-Convex-26d962)](https://convex.dev)
