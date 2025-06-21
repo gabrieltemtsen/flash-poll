@@ -2,25 +2,29 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useQuery } from "convex/react";
 import { useMiniApp } from "@neynar/react";
-import { useParams } from "next/navigation";
+import { useParams, notFound } from "next/navigation";
 import sdk from "@farcaster/frame-sdk";
 import { CheckCircle, Users, Badge, Share2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/Button";
 import { ShareButton } from "~/components/ui/Share";
 import Link from "next/link";
-import { api } from "../../../convex/_generated/api";
-import { Id } from "../../../convex/_generated/dataModel";
+import { api } from "../../../../convex/_generated/api";
+import { Id } from "../../../../convex/_generated/dataModel";
 import { APP_URL } from "~/lib/constants";
 
 export default function PollPage() {
   const { pollId } = useParams<{ pollId: string }>();
   const { context } = useMiniApp();
   const userFid = context?.user?.fid?.toString();
-  const [shareError, setShareError] = useState<string | null>(null);
+
+  // Log pollId for debugging
+  useEffect(() => {
+    console.log("pollId:", pollId);
+  }, [pollId]);
 
   // Fetch poll and vote status
   const poll = useQuery(api.polls.getPoll, pollId ? { pollId: pollId as Id<"polls"> } : "skip");
@@ -29,9 +33,10 @@ export default function PollPage() {
     userFid && pollId ? { pollId: pollId as Id<"polls">, userFid } : "skip"
   );
 
-  const getPercentage = (votes: number, total: number): number => {
-    return total > 0 ? Math.round((votes / total) * 100) : 0;
-  };
+  // Log poll data for debugging
+  useEffect(() => {
+    console.log("poll:", poll);
+  }, [poll]);
 
   const castConfig = {
     text: `Check out this poll: ${poll?.title || "Untitled"} on Flash Poll! @1 @2`,
@@ -44,13 +49,14 @@ export default function PollPage() {
     ],
   };
 
+  // Handle 404 for invalid pollId or missing poll
   if (!pollId || !poll) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center">
-        <p className="text-gray-500">Loading poll or poll not found...</p>
-      </div>
-    );
+    notFound(); // Use Next.js notFound() for proper 404 handling
   }
+
+  const getPercentage = (votes: number, total: number): number => {
+    return total > 0 ? Math.round((votes / total) * 100) : 0;
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
@@ -126,17 +132,16 @@ export default function PollPage() {
               <Link href="/" className="flex-1">
                 <Button className="w-full bg-gray-500 hover:bg-gray-600">Back to All Polls</Button>
               </Link>
-          <ShareButton
-            buttonText="Share Poll"
-            cast={castConfig}
-            className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
-            isLoading={false}
-          >
-            <Share2 className="w-4 h-4 mr-2" />
-            Share Poll
-          </ShareButton>
+              <ShareButton
+                buttonText="Share Poll"
+                cast={castConfig}
+                className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
+                isLoading={false}
+              >
+                <Share2 className="w-4 h-4 mr-2" />
+                Share Poll
+              </ShareButton>
             </div>
-            {shareError && <p className="text-red-500 text-sm mt-2">{shareError}</p>}
           </CardContent>
         </Card>
       </div>
