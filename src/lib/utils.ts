@@ -51,7 +51,7 @@ export function getMiniAppEmbedMetadata(ogImageUrl?: string) {
       title: 'yah',
       action: {
         type: "launch_frame",
-        name: APP_NAME,
+        name: APP_NAME || "Flash Polls",
         url: APP_URL,
         splashImageUrl: APP_SPLASH_URL,
         iconUrl: APP_ICON_URL,
