@@ -18,6 +18,8 @@ export default function PollPage() {
   const { pollId } = router.query; // Get pollId from URL
   const { context } = useMiniApp();
   const userFid = context?.user?.fid?.toString();
+  console.log("User FID:", userFid);
+  console.log("Poll ID from URL:", pollId);
 
   // Fetch poll and vote status
   const poll = useQuery(api.polls.getPoll, pollId ? { pollId: pollId as Id<"polls"> } : "skip");

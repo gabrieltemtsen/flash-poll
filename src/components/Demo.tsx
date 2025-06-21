@@ -18,11 +18,10 @@ import {
   useChainId,
 } from "wagmi";
 import { useQuery, useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api"; // Adjust path to your generated API
-import { Id } from "../../convex/_generated/dataModel"; // Adjust path
-
+import { api } from "../../convex/_generated/api";
+import { Id } from "../../convex/_generated/dataModel";
 import { ShareButton } from "./ui/Share";
-import { CheckCircle, Users, TrendingUp, Badge } from "lucide-react";
+import { CheckCircle, Users, TrendingUp, Badge, Plus } from "lucide-react";
 import { config } from "~/components/providers/WagmiProvider";
 import { Button } from "~/components/ui/Button";
 import { truncateAddress } from "~/lib/truncateAddress";
@@ -30,16 +29,24 @@ import { base, degen, mainnet, optimism, unichain } from "wagmi/chains";
 import { BaseError, UserRejectedRequestError } from "viem";
 import { useSession } from "next-auth/react";
 import { useMiniApp } from "@neynar/react";
-import { Header } from "~/components/ui/Header";
-import { Footer } from "~/components/ui/Footer";
-import { USE_WALLET, APP_NAME } from "~/lib/constants";
+import { APP_NAME } from "~/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import Link from "next/link";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "~/components/ui/dialog";
+import { Input } from "~/components/ui/input";
+import { Textarea } from "~/components/ui/textarea";
+import { Label } from "~/components/ui/label";
 
 export type Tab = "home" | "actions" | "context" | "wallet";
 
 interface NeynarUser {
-  fid: any;
+  fid: string;
   score: number;
 }
 
@@ -57,6 +64,13 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
   const [sendNotificationResult, setSendNotificationResult] = useState("");
   const [copied, setCopied] = useState(false);
   const [neynarUser, setNeynarUser] = useState<NeynarUser | null>(null);
+  const [isCreatePollOpen, setIsCreatePollOpen] = useState(false);
+  const [pollForm, setPollForm] = useState({
+    title: "",
+    description: "",
+    options: [{ text: "" }, { text: "" }], // Start with 2 options
+  });
+  const [createPollError, setCreatePollError] = useState<string | null>(null);
 
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
@@ -65,6 +79,7 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
   const polls = useQuery(api.polls.getAllPolls, { limit: 10 }) || [];
   const addOrUpdateUser = useMutation(api.users.addOrUpdateUser);
   const voteMutation = useMutation(api.polls.vote);
+  const createPollMutation = useMutation(api.polls.createPoll);
   const [votingStates, setVotingStates] = useState<Record<string, boolean>>({});
 
   // Register user with Convex when authenticated
@@ -76,9 +91,9 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
         username: context.user.username,
       }).catch((error) => console.error("Failed to register user:", error));
     }
-  }, [context?.user?.fid, address, isConnected, addOrUpdateUser]);
+  }, [context?.user?.fid, context?.user?.username, address, isConnected, addOrUpdateUser]);
 
-  // Fetch Neynar user object (retained for later use)
+  // Fetch Neynar user object
   useEffect(() => {
     const fetchNeynarUserObject = async () => {
       if (context?.user?.fid) {
@@ -96,7 +111,7 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
     fetchNeynarUserObject();
   }, [context?.user?.fid]);
 
-  // Wallet-related hooks (retained for later use)
+  // Wallet-related hooks
   const {
     sendTransaction,
     error: sendTxError,
@@ -190,7 +205,7 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
 
   const handleVote = async (pollId: Id<"polls">, optionId: string) => {
     if (!context?.user?.fid) {
-      console.error("User not authenticated");
+      setCreatePollError("Please sign in with Farcaster to vote");
       return;
     }
     setVotingStates((prev) => ({ ...prev, [pollId]: true }));
@@ -202,8 +217,66 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
       });
     } catch (error: any) {
       console.error("Failed to vote:", error.message);
+      setCreatePollError(error.message || "Failed to vote");
     } finally {
       setVotingStates((prev) => ({ ...prev, [pollId]: false }));
+    }
+  };
+
+  const handleCreatePoll = async () => {
+    if (!context?.user?.fid) {
+      setCreatePollError("Please sign in with Farcaster to create a poll");
+      return;
+    }
+    if (!pollForm.title || !pollForm.description) {
+      setCreatePollError("Title and description are required");
+      return;
+    }
+    const validOptions = pollForm.options.filter((opt) => opt.text.trim());
+    if (validOptions.length < 2) {
+      setCreatePollError("At least two valid options are required");
+      return;
+    }
+
+    try {
+      await createPollMutation({
+        creatorFid: context.user.fid.toString(),
+        title: pollForm.title,
+        description: pollForm.description,
+        options: validOptions.map((opt, index) => ({
+          id: `option-${index}`,
+          text: opt.text,
+        })),
+      });
+      setPollForm({ title: "", description: "", options: [{ text: "" }, { text: "" }] });
+      setIsCreatePollOpen(false);
+      setCreatePollError(null);
+    } catch (error: any) {
+      console.error("Failed to create poll:", error.message);
+      setCreatePollError(error.message || "Failed to create poll");
+    }
+  };
+
+  const addOption = () => {
+    setPollForm((prev) => ({
+      ...prev,
+      options: [...prev.options, { text: "" }],
+    }));
+  };
+
+  const updateOption = (index: number, text: string) => {
+    setPollForm((prev) => ({
+      ...prev,
+      options: prev.options.map((opt, i) => (i === index ? { text } : opt)),
+    }));
+  };
+
+  const removeOption = (index: number) => {
+    if (pollForm.options.length > 2) {
+      setPollForm((prev) => ({
+        ...prev,
+        options: prev.options.filter((_, i) => i !== index),
+      }));
     }
   };
 
@@ -331,6 +404,16 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
             <p className="text-gray-600 mt-2 text-sm md:text-base">
               Share your opinion and see what others think
             </p>
+            <div className="mt-4">
+              <Button
+                onClick={() => setIsCreatePollOpen(true)}
+                disabled={!context?.user?.fid}
+                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create Poll
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -343,6 +426,70 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
           )}
         </div>
       </div>
+      <Dialog open={isCreatePollOpen} onOpenChange={setIsCreatePollOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Create a New Poll</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="title">Poll Title</Label>
+              <Input
+                id="title"
+                value={pollForm.title}
+                onChange={(e) =>
+                  setPollForm((prev) => ({ ...prev, title: e.target.value }))
+                }
+                placeholder="Enter poll title"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={pollForm.description}
+                onChange={(e) =>
+                  setPollForm((prev) => ({ ...prev, description: e.target.value }))
+                }
+                placeholder="Enter poll description"
+              />
+            </div>
+            {pollForm.options.map((option, index) => (
+              <div key={index} className="flex gap-2 items-center">
+                <Input
+                  value={option.text}
+                  onChange={(e) => updateOption(index, e.target.value)}
+                  placeholder={`Option ${index + 1}`}
+                />
+                {pollForm.options.length > 2 && (
+                  <Button
+                    onClick={() => removeOption(index)}
+                  >
+                    Remove
+                  </Button>
+                )}
+              </div>
+            ))}
+            <Button onClick={addOption} className="mt-2">
+              Add Option
+            </Button>
+            {createPollError && (
+              <p className="text-red-500 text-sm">{createPollError}</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                setIsCreatePollOpen(false);
+                setCreatePollError(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleCreatePoll}>Create Poll</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <div className="bg-white/50 backdrop-blur-sm border-t border-purple-100 mt-16">
         <div className="container mx-auto px-4 py-8 text-center">
           <p className="text-gray-500 text-sm">
