@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @next/next/no-img-element */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
@@ -37,7 +39,7 @@ import Link from "next/link";
 export type Tab = "home" | "actions" | "context" | "wallet";
 
 interface NeynarUser {
-  fid: number;
+  fid: any;
   score: number;
 }
 
@@ -358,7 +360,18 @@ function SignIn() {
   const [signingOut, setSigningOut] = useState(false);
   const [signInResult, setSignInResult] = useState<SignInCore.SignInResult>();
   const [signInFailure, setSignInFailure] = useState<string>();
-  const { data: session, status } = useSession();
+  // Extend session user type to include optional image and name
+  interface SessionUser {
+    fid: number;
+    image?: string;
+    name?: string;
+    [key: string]: any;
+  }
+  interface SessionData {
+    user?: SessionUser;
+    [key: string]: any;
+  }
+  const { data: session, status } = useSession() as { data: SessionData; status: string };
 
   const getNonce = useCallback(async () => {
     const nonce = await getCsrfToken();
@@ -371,17 +384,20 @@ function SignIn() {
       setSigningIn(true);
       setSignInFailure(undefined);
       const nonce = await getNonce();
-      const result = await sdk.actions.signIn({ nonce });
+      const result: any = await sdk.actions.signIn({ nonce });
       setSignInResult(result);
-      await signIn("credentials", {
+      await signIn("farcaster", {
         message: result.message,
         signature: result.signature,
+        name: result.username,
+        pfp: result.pfpUrl,
         redirect: false,
       });
     } catch (e) {
       if (e instanceof SignInCore.RejectedByUser) {
         setSignInFailure("Rejected by user");
       } else {
+        console.error("Sign in error:", e);
         setSignInFailure("Unknown error");
       }
     } finally {
@@ -400,36 +416,62 @@ function SignIn() {
   }, []);
 
   return (
-    <>
-      {status !== "authenticated" && (
-        <Button onClick={handleSignIn} disabled={signingIn}>
-          Sign In with Farcaster
+    <div className="mt-4">
+      {status !== "authenticated" ? (
+        <Button
+          onClick={handleSignIn}
+          disabled={signingIn}
+          className="bg-purple-600 hover:bg-purple-700 text-white"
+        >
+          {signingIn ? (
+            <span className="flex items-center gap-2">
+              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              Signing in...
+            </span>
+          ) : (
+            "Sign in with Farcaster"
+          )}
         </Button>
-      )}
-      {status === "authenticated" && (
-        <Button onClick={handleSignOut} disabled={signingOut}>
-          Sign out
-        </Button>
-      )}
-      {session && (
-        <div className="my-2 p-2 text-xs overflow-x-scroll bg-gray-100 rounded-lg font-mono">
-          <div className="font-semibold text-gray-500 mb-1">Session</div>
-          <div className="whitespace-pre">{JSON.stringify(session, null, 2)}</div>
+      ) : (
+        <div className="flex items-center gap-4">
+          {session.user?.image && (
+            <img
+              src={session.user.image}
+              alt="Profile"
+              className="w-8 h-8 rounded-full"
+            />
+          )}
+          <span className="font-medium text-gray-700">
+            {session.user?.name || "Farcaster User"}
+          </span>
+          <Button
+            onClick={handleSignOut}
+            disabled={signingOut}
+            className="text-sm"
+          >
+            {signingOut ? "Signing out..." : "Sign out"}
+          </Button>
         </div>
       )}
-      {signInFailure && !signingIn && (
-        <div className="my-2 p-2 text-xs overflow-x-scroll bg-gray-100 rounded-lg font-mono">
-          <div className="font-semibold text-gray-500 mb-1">SIWF Result</div>
-          <div className="whitespace-pre">{signInFailure}</div>
-        </div>
+
+      {signInFailure && (
+        <div className="mt-2 text-red-500 text-sm">{signInFailure}</div>
       )}
-      {signInResult && !signingIn && (
-        <div className="my-2 p-2 text-xs overflow-x-scroll bg-gray-100 rounded-lg font-mono">
-          <div className="font-semibold text-gray-500 mb-1">SIWF Result</div>
-          <div className="whitespace-pre">{JSON.stringify(signInResult, null, 2)}</div>
-        </div>
-      )}
-    </>
+    </div>
   );
 }
 
