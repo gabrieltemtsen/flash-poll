@@ -89,7 +89,6 @@ export async function generateMetadataForPoll({
   params: Promise<{ pollId: string }>;
 }): Promise<Metadata> {
   const { pollId } = await params;
-  const cleanPollId = pollId.replace(/^"|"$/g, "").trim();
 
   const defaultMetadata: Metadata = {
     title: "Fast Poll - View Poll",
@@ -97,7 +96,7 @@ export async function generateMetadataForPoll({
       "Vote and see real-time results on Fast Poll. Join the Farcaster community and share your opinion!",
     openGraph: {
       type: "website",
-      url: `${APP_URL}/poll/${cleanPollId}`,
+      url: `${APP_URL}/poll/${pollId}`,
       title: "Fast Poll - View Poll",
       description:
         "Vote and see real-time results on Fast Poll. Join the Farcaster community and share your opinion!",
@@ -120,24 +119,34 @@ export async function generateMetadataForPoll({
       images: [APP_OG_IMAGE_URL],
     },
     other: {
-      "fc:frame": "vNext",
-      "fc:frame:image": APP_OG_IMAGE_URL,
-      "fc:frame:button:1": APP_BUTTON_TEXT,
-      "fc:frame:button:1:action": "post_redirect",
-      "fc:frame:post_url": `${APP_URL}/poll/${cleanPollId}/frame`,
+      "fc:frame": JSON.stringify({
+        version: "next",
+        imageUrl: APP_OG_IMAGE_URL,
+        button: {
+          title: APP_BUTTON_TEXT,
+          action: {
+            type: "launch_frame",
+            name: APP_NAME,
+            url: `${APP_URL}/poll/${pollId}`,
+            splashImageUrl: APP_SPLASH_URL,
+            iconUrl: APP_ICON_URL,
+            splashBackgroundColor: APP_SPLASH_BACKGROUND_COLOR,
+          },
+        },
+      }),
     },
   };
 
-  if (!cleanPollId) {
+  if (!pollId) {
     return defaultMetadata;
   }
 
   let poll: Poll | null = null;
   try {
-    const response = await fetch(`${APP_URL}/api/poll?pollId=${encodeURIComponent(cleanPollId)}`, {
+    const response = await fetch(`${APP_URL}/api/poll?pollId=${pollId}`, {
       next: { revalidate: 60 },
     });
-    if (!response.ok) throw new Error(`Poll fetch failed: ${response.statusText}`);
+    if (!response.ok) throw new Error("Poll not found");
     poll = await response.json();
   } catch (error) {
     console.error("Error fetching poll:", error);
@@ -151,8 +160,8 @@ export async function generateMetadataForPoll({
   const ogImageUrl = generateDynamicOGUrl({
     type: "poll",
     dataObject: {
-      title: poll.title.slice(0, 60),
-      description: poll.description.slice(0, 80),
+      title: poll.title.slice(0, 150),
+      description: poll.description.slice(0, 600),
       totalVotes: poll.totalVotes.toString(),
       options: JSON.stringify(
         poll.options.map((opt) => ({
@@ -168,7 +177,7 @@ export async function generateMetadataForPoll({
     description: poll.description,
     openGraph: {
       type: "website",
-      url: `${APP_URL}/poll/${cleanPollId}`,
+      url: `${APP_URL}/poll/${pollId}`,
       title: poll.title,
       description: poll.description,
       siteName: APP_NAME,
@@ -189,11 +198,21 @@ export async function generateMetadataForPoll({
       images: [ogImageUrl],
     },
     other: {
-      "fc:frame": "vNext",
-      "fc:frame:image": ogImageUrl,
-      "fc:frame:button:1": APP_BUTTON_TEXT,
-      "fc:frame:button:1:action": "post_redirect",
-      "fc:frame:post_url": `${APP_URL}/poll/${cleanPollId}/frame`,
+      "fc:frame": JSON.stringify({
+        version: "next",
+        imageUrl: ogImageUrl,
+        button: {
+          title: APP_BUTTON_TEXT,
+          action: {
+            type: "launch_frame",
+            name: APP_NAME,
+            url: `${APP_URL}/poll/${pollId}`,
+            splashImageUrl: APP_SPLASH_URL,
+            iconUrl: APP_ICON_URL,
+            splashBackgroundColor: APP_SPLASH_BACKGROUND_COLOR,
+          },
+        },
+      }),
     },
   };
 };
