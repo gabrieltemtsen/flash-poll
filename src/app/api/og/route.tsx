@@ -1,7 +1,7 @@
 import { ImageResponse } from "@vercel/og";
 import { NextRequest } from "next/server";
 
-export const runtime = "edge"; // Use Edge runtime
+export const runtime = "edge";
 
 interface PollOption {
   text: string;
@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
   const totalVotes = searchParams.get("totalVotes") || "0";
   const optionsRaw = searchParams.get("options");
 
+  // Fallback for non-poll type
   if (type !== "poll") {
     return new ImageResponse(
       (
@@ -32,23 +33,39 @@ export async function GET(request: NextRequest) {
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            width: 1200,
-            height: 630,
-            background: "linear-gradient(to bottom right, #f3e8ff, #dbeafe)",
+            width: "100%",
+            height: "100%",
+            background: "linear-gradient(135deg, #f3e8ff 0%, #dbeafe 100%)",
             fontFamily: "sans-serif",
             color: "#1f2937",
-            padding: 40,
+            padding: "8%",
+            textAlign: "center",
           }}
         >
-          <h1 style={{ fontSize: 64, fontWeight: "bold", textAlign: "center" }}>
+          <h1
+            style={{
+              fontSize: "clamp(32px, 5vw, 40px)",
+              fontWeight: "bold",
+              color: "#6b46c1",
+              marginBottom: "12px",
+              lineHeight: "1.2",
+            }}
+          >
             Fast Poll
           </h1>
-          <p style={{ fontSize: 28, textAlign: "center", color: "#4b5563" }}>
+          <p
+            style={{
+              fontSize: "clamp(18px, 3vw, 20px)",
+              color: "#4b5563",
+              maxWidth: "80%",
+              lineHeight: "1.4",
+            }}
+          >
             Create and vote on polls instantly!
           </p>
         </div>
       ),
-      { width: 1200, height: 630 },
+      { width: 1200, height: 630 }
     );
   }
 
@@ -69,6 +86,8 @@ export async function GET(request: NextRequest) {
   };
 
   const totalVotesNum = parseInt(totalVotes, 10) || 1; // Avoid division by zero
+  const maxOptionWidth = 800; // Increased for better visibility
+
   try {
     return new ImageResponse(
       (
@@ -76,12 +95,14 @@ export async function GET(request: NextRequest) {
           style={{
             display: "flex",
             flexDirection: "column",
-            width: 1200,
-            height: 630,
-            background: "linear-gradient(to bottom right, #f3e8ff, #dbeafe)",
+            width: "100%",
+            height: "100%",
+            background: "linear-gradient(135deg, #f9f5ff 0%, #e6f0fa 100%)",
             fontFamily: "sans-serif",
             color: "#1f2937",
-            padding: 40,
+            padding: "6%",
+            gap: "16px",
+            boxSizing: "border-box",
           }}
         >
           {/* Header */}
@@ -90,38 +111,44 @@ export async function GET(request: NextRequest) {
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              marginBottom: 32,
-              padding: "0 32px",
+              gap: "8px",
+              padding: "16px",
+              background: "rgba(255, 255, 255, 0.85)",
+              borderRadius: "12px",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
             }}
           >
             <h1
               style={{
-                fontSize: 56,
+                fontSize: "clamp(28px, 4vw, 34px)",
                 fontWeight: "bold",
                 textAlign: "center",
                 color: "#6b46c1",
-                maxWidth: 1000,
-                wordBreak: "break-word",
-                whiteSpace: "pre-wrap",
+                margin: 0,
+                lineHeight: "1.2",
               }}
             >
-              {pollData.title}
+              {pollData.title.slice(0, 80)}
             </h1>
             <p
               style={{
-                fontSize: 28,
+                fontSize: "clamp(14px, 2.5vw, 16px)",
                 color: "#4b5563",
                 textAlign: "center",
-                maxWidth: 900,
-                marginTop: 12,
-                marginBottom: 24,
-                lineHeight: 1.3,
+                maxWidth: "90%",
+                margin: "8px 0",
+                lineHeight: "1.4",
               }}
             >
-              {pollData.description}
+              {pollData.description.slice(0, 120)}
             </p>
             <p
-              style={{ fontSize: 24, color: "#6b46c1", fontWeight: "bold" }}
+              style={{
+                fontSize: "clamp(14px, 2vw, 16px)",
+                color: "#6b46c1",
+                fontWeight: "bold",
+                margin: 0,
+              }}
             >
               Total Votes: {totalVotes}
             </p>
@@ -132,64 +159,58 @@ export async function GET(request: NextRequest) {
             style={{
               display: "flex",
               flexDirection: "column",
-              gap: 20,
-              width: "100%",
-              maxWidth: 900,
-              alignSelf: "center",
+              gap: "12px",
+              flex: 1,
+              overflow: "hidden",
+              padding: "12px",
             }}
           >
-            {pollData.options.map((option, index) => {
-              const percentage = ((option.votes / totalVotesNum) * 100).toFixed(
-                1,
+            {pollData.options.slice(0, 4).map((option, index) => {
+              const percentage = ((option.votes / totalVotesNum) * 100).toFixed(1);
+              const barWidth = Math.min(
+                (parseFloat(percentage) / 100) * maxOptionWidth,
+                maxOptionWidth
               );
+
               return (
                 <div
                   key={index}
                   style={{
                     display: "flex",
                     flexDirection: "column",
-                    gap: 6,
+                    gap: "6px",
+                    background: "rgba(255, 255, 255, 0.95)",
+                    padding: "12px",
+                    borderRadius: "8px",
+                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
                   }}
                 >
                   <div
                     style={{
                       display: "flex",
-                      alignItems: "center",
                       justifyContent: "space-between",
-                      fontSize: 24,
-                      fontWeight: "bold",
+                      fontSize: "clamp(12px, 2vw, 14px)",
+                      fontWeight: "medium",
+                      color: "#1f2937",
                     }}
                   >
-                    <span
-                      style={{ flex: 1, marginRight: 16, wordBreak: "break-word" }}
-                    >
-                      {option.text}
+                    <span style={{ maxWidth: "60%", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {option.text.slice(0, 40)}
                     </span>
-                    <span
-                      style={{ width: 160, textAlign: "right", fontWeight: "normal" }}
-                    >
+                    <span>
                       {option.votes} ({percentage}%)
                     </span>
                   </div>
                   <div
                     style={{
-                      position: "relative",
-                      width: "100%",
-                      height: 20,
-                      backgroundColor: "#E5E7EB",
-                      borderRadius: 8,
-                      overflow: "hidden",
+                      width: `${barWidth}px`,
+                      height: "10px",
+                      background: "linear-gradient(90deg, #a78bfa, #60a5fa)",
+                      borderRadius: "5px",
+                      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                      transition: "width 0.3s ease", // Not functional in static images but good practice
                     }}
-                  >
-                    <div
-                      style={{
-                        width: `${percentage}%`,
-                        height: "100%",
-                        background: "linear-gradient(to right, #a78bfa, #60a5fa)",
-                        borderRadius: 8,
-                      }}
-                    />
-                  </div>
+                  />
                 </div>
               );
             })}
@@ -200,16 +221,20 @@ export async function GET(request: NextRequest) {
             style={{
               display: "flex",
               justifyContent: "center",
-              marginTop: "auto",
-              fontSize: 16,
+              alignItems: "center",
+              padding: "12px",
+              background: "rgba(255, 255, 255, 0.7)",
+              borderRadius: "8px",
+              fontSize: "clamp(12px, 2vw, 14px)",
               color: "#4b5563",
+              fontWeight: "medium",
             }}
           >
             Powered by Fast Poll
           </div>
         </div>
       ),
-      { width: 1200, height: 630 },
+      { width: 1200, height: 630 }
     );
   } catch (error) {
     console.error("Error generating image:", error);
@@ -221,23 +246,35 @@ export async function GET(request: NextRequest) {
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            width: 1200,
-            height: 630,
-            background: "linear-gradient(to bottom right, #f3e8ff, #dbeafe)",
+            width: "100%",
+            height: "100%",
+            background: "linear-gradient(135deg, #f3e8ff, #dbeafe)",
             fontFamily: "sans-serif",
             color: "#1f2937",
-            padding: 40,
+            padding: "8%",
           }}
         >
-          <h1 style={{ fontSize: 64, fontWeight: "bold", textAlign: "center" }}>
+          <h1
+            style={{
+              fontSize: "clamp(32px, 5vw, 40px)",
+              fontWeight: "bold",
+              textAlign: "center",
+            }}
+          >
             Fast Poll
           </h1>
-          <p style={{ fontSize: 28, textAlign: "center", color: "#4b5563" }}>
+          <p
+            style={{
+              fontSize: "clamp(18px, 3vw, 20px)",
+              textAlign: "center",
+              color: "#4b5563",
+            }}
+          >
             Error generating poll image.
           </p>
         </div>
       ),
-      { width: 1200, height: 630 },
+      { width: 1200, height: 630 }
     );
   }
 }
