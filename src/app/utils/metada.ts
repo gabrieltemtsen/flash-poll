@@ -16,7 +16,7 @@ interface PollOption {
 interface Poll {
   title: string;
   description: string;
-  totalVotes: number;
+  totalVotes: number; 
   options: PollOption[];
 }
 
