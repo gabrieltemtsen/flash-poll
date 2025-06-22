@@ -143,7 +143,7 @@ export async function generateMetadataForPoll({
 
   let poll: Poll | null = null;
   try {
-    const response = await fetch(`${APP_URL}/api/poll/${pollId}`, {
+    const response = await fetch(`${APP_URL}/api/poll?pollId=${pollId}`, {
       next: { revalidate: 60 },
     });
     if (!response.ok) throw new Error("Poll not found");
