@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ImageResponse } from "@vercel/og";
 import { NextRequest } from "next/server";
 
@@ -36,19 +35,18 @@ export async function GET(request: NextRequest) {
             justifyContent: "center",
             width: "100%",
             height: "100%",
-            background: "linear-gradient(135deg, #f3e8ff 0%, #dbeafe 100%)",
+            background: "linear-gradient(135deg, #ffffff, #f0f4ff)",
             fontFamily: "sans-serif",
             color: "#1f2937",
-            padding: "8%",
-            textAlign: "center",
+            padding: "10%",
           }}
         >
           <h1
             style={{
-              fontSize: "clamp(32px, 5vw, 40px)",
+              fontSize: "clamp(28px, 4vw, 32px)",
               fontWeight: "bold",
-              color: "#6b46c1",
-              marginBottom: "12px",
+              color: "#5b21b6",
+              marginBottom: "10px",
               lineHeight: "1.2",
             }}
           >
@@ -56,9 +54,10 @@ export async function GET(request: NextRequest) {
           </h1>
           <p
             style={{
-              fontSize: "clamp(18px, 3vw, 20px)",
+              fontSize: "clamp(14px, 2vw, 16px)",
               color: "#4b5563",
               maxWidth: "80%",
+              textAlign: "center",
               lineHeight: "1.4",
             }}
           >
@@ -86,8 +85,7 @@ export async function GET(request: NextRequest) {
     options,
   };
 
-  const totalVotesNum = parseInt(totalVotes, 10) || 1; // Avoid division by zero
-  const maxOptionWidth = 400; // Increased for better visibility
+  const totalVotesNum = parseInt(totalVotes, 10) || 1;
 
   try {
     return new ImageResponse(
@@ -95,142 +93,142 @@ export async function GET(request: NextRequest) {
         <div
           style={{
             display: "flex",
-            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
             width: "100%",
             height: "100%",
-            background: "linear-gradient(135deg, #f9f5ff 0%, #e6f0fa 100%)",
+            background: "linear-gradient(135deg, #ffffff, #f0f4ff)",
             fontFamily: "sans-serif",
             color: "#1f2937",
-            padding: "6%",
-            gap: "16px",
-            boxSizing: "border-box",
+            padding: "5%",
           }}
         >
-          {/* Header */}
           <div
             style={{
               display: "flex",
               flexDirection: "column",
-              alignItems: "center",
-              gap: "8px",
-              padding: "16px",
-              background: "rgba(255, 255, 255, 0.85)",
-              borderRadius: "12px",
-              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+              width: "100%",
+              maxWidth: "500px",
+              background: "#ffffff",
+              borderRadius: "16px",
+              boxShadow: "0 4px 16px rgba(0, 0, 0, 0.1)",
+              padding: "20px",
+              gap: "12px",
             }}
           >
-            <h1
+            {/* Header */}
+            <div
               style={{
-                fontSize: "clamp(28px, 4vw, 34px)",
-                fontWeight: "bold",
-                textAlign: "center",
-                color: "#6b46c1",
-                margin: 0,
-                lineHeight: "1.2",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "6px",
               }}
             >
-              {pollData.title.slice(0, 80)}
-            </h1>
-            <p
+              <h1
+                style={{
+                  fontSize: "clamp(20px, 3vw, 24px)",
+                  fontWeight: "bold",
+                  color: "#5b21b6",
+                  textAlign: "center",
+                  margin: 0,
+                  lineHeight: "1.2",
+                }}
+              >
+                {pollData.title.slice(0, 60)}
+              </h1>
+              <p
+                style={{
+                  fontSize: "clamp(12px, 1.8vw, 14px)",
+                  color: "#4b5563",
+                  textAlign: "center",
+                  maxWidth: "90%",
+                  margin: "4px 0",
+                  lineHeight: "1.3",
+                }}
+              >
+                {pollData.description.slice(0, 80)}
+              </p>
+              <p
+                style={{
+                  fontSize: "clamp(12px, 1.8vw, 14px)",
+                  color: "#5b21b6",
+                  fontWeight: "bold",
+                  margin: 0,
+                }}
+              >
+                Total Votes: {totalVotes}
+              </p>
+            </div>
+
+            {/* Options */}
+            <div
               style={{
-                fontSize: "clamp(14px, 2.5vw, 16px)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+              }}
+            >
+              {pollData.options.slice(0, 4).map((option, index) => {
+                const percentage = ((option.votes / totalVotesNum) * 100).toFixed(1);
+                return (
+                  <div
+                    key={index}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      padding: "8px",
+                      background: "#f8fafc",
+                      borderRadius: "8px",
+                      border: "1px solid #e5e7eb",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "16px",
+                        height: "16px",
+                        borderRadius: "50%",
+                        border: "2px solid #5b21b6",
+                        background: option.votes > 0 ? "#5b21b6" : "transparent",
+                      }}
+                    />
+                    <span
+                      style={{
+                        fontSize: "clamp(11px, 1.6vw, 12px)",
+                        flex: 1,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {option.text.slice(0, 30)}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "clamp(11px, 1.6vw, 12px)",
+                        fontWeight: "bold",
+                        color: "#5b21b6",
+                      }}
+                    >
+                      {percentage}%
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Footer */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                fontSize: "clamp(10px, 1.5vw, 11px)",
                 color: "#4b5563",
-                textAlign: "center",
-                maxWidth: "90%",
-                margin: "8px 0",
-                lineHeight: "1.4",
+                marginTop: "8px",
               }}
             >
-              {pollData.description.slice(0, 120)}
-            </p>
-            <p
-              style={{
-                fontSize: "clamp(14px, 2vw, 16px)",
-                color: "#6b46c1",
-                fontWeight: "bold",
-                margin: 0,
-              }}
-            >
-              Total Votes: {totalVotes}
-            </p>
-          </div>
-
-          {/* Options */}
-<div
-  style={{
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px",
-    width: "100%",
-    maxWidth: "400px", // Constrain width like Google Forms
-    margin: "0 auto", // Center align
-    padding: "8px",
-    overflow: "hidden",
-  }}
->
-  {pollData.options.slice(0, 4).map((option, index) => {
-    const percentage = ((option.votes / totalVotesNum) * 100).toFixed(1);
-    const barWidth = Math.min((parseFloat(percentage) / 100) * 300, 300); // Shorter bar
-
-    return (
-      <div
-        key={index}
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "4px",
-          background: "rgba(255, 255, 255, 0.95)",
-          padding: "8px",
-          borderRadius: "6px",
-          boxShadow: "0 1px 4px rgba(0, 0, 0, 0.05)",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            fontSize: "clamp(11px, 1.8vw, 13px)",
-            fontWeight: "medium",
-            color: "#1f2937",
-          }}
-        >
-          <span style={{ maxWidth: "70%", overflow: "hidden", textOverflow: "ellipsis" }}>
-            {option.text.slice(0, 30)} {/* Shorter text truncation */}
-          </span>
-          <span>
-            {option.votes} ({percentage}%)
-          </span>
-        </div>
-        <div
-          style={{
-            width: `${barWidth}px`,
-            height: "8px", // Thinner bar
-            background: "linear-gradient(90deg, #a78bfa, #60a5fa)",
-            borderRadius: "4px",
-            boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)",
-            transition: "width 0.3s ease",
-          }}
-        />
-      </div>
-    );
-  })}
-</div>
-
-          {/* Footer */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              padding: "12px",
-              background: "rgba(255, 255, 255, 0.7)",
-              borderRadius: "8px",
-              fontSize: "clamp(12px, 2vw, 14px)",
-              color: "#4b5563",
-              fontWeight: "medium",
-            }}
-          >
-            Powered by Fast Poll
+              Powered by Fast Poll
+            </div>
           </div>
         </div>
       ),
@@ -248,15 +246,15 @@ export async function GET(request: NextRequest) {
             justifyContent: "center",
             width: "100%",
             height: "100%",
-            background: "linear-gradient(135deg, #f3e8ff, #dbeafe)",
+            background: "linear-gradient(135deg, #ffffff, #f0f4ff)",
             fontFamily: "sans-serif",
             color: "#1f2937",
-            padding: "8%",
+            padding: "10%",
           }}
         >
           <h1
             style={{
-              fontSize: "clamp(32px, 5vw, 40px)",
+              fontSize: "clamp(28px, 4vw, 32px)",
               fontWeight: "bold",
               textAlign: "center",
             }}
@@ -265,7 +263,7 @@ export async function GET(request: NextRequest) {
           </h1>
           <p
             style={{
-              fontSize: "clamp(18px, 3vw, 20px)",
+              fontSize: "clamp(14px, 2vw, 16px)",
               textAlign: "center",
               color: "#4b5563",
             }}
