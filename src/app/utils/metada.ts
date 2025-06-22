@@ -3,15 +3,15 @@
 import { Metadata } from "next";
 import { useQuery } from "convex/react";
 
-const APP_URL = process.env.NEXT_PUBLIC_URL || "https://fastpoll.example.com";
+const APP_URL = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
 const APP_ICON_URL =
-  `${process.env.NEXT_PUBLIC_URL}/icon.png` || "https://fastpoll.example.com/icon.png";
+  `${process.env.NEXT_PUBLIC_URL}/icon.png` || "http://localhost:3000/icon.png";
 const APP_SPLASH_URL =
-  `${process.env.NEXT_PUBLIC_URL}/logo.svg` || "https://fastpoll.example.com/logo.svg";
+  `${process.env.NEXT_PUBLIC_URL}/logo.svg` || "http://localhost:3000/logo.svg";
 const APP_SPLASH_BACKGROUND_COLOR = "#6b46c1"; // Purple theme to match your UI
 const APP_OG_IMAGE_URL =
   `${process.env.NEXT_PUBLIC_URL}/images/fastpoll-preview.png` ||
-  "https://fastpoll.example.com/images/fastpoll-preview.png";
+  "http://localhost:3000/images/fastpoll-preview.png";
 const APP_BUTTON_TEXT = "View Poll";
 const APP_NAME = "Fast Poll";
 

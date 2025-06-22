@@ -35,6 +35,8 @@ interface Poll {
   createdAt: number;
 }
 
+
+
 export default function PollPage() {
   const { pollId } = useParams<PollPageParams>();
   const { context } = useMiniApp();
