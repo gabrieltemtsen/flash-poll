@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
   };
 
   const totalVotesNum = parseInt(totalVotes, 10) || 1; // Avoid division by zero
-  const maxOptionWidth = 700; // Max width for vote bars
+const maxOptionWidth = 500; 
 
   try {
     return new ImageResponse(
@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
           >
             <h1
               style={{
-                fontSize: 48,
+                fontSize: 60,
                 fontWeight: "bold",
                 textAlign: "center",
                 color: "#6b46c1",
@@ -107,7 +107,7 @@ export async function GET(request: NextRequest) {
             </h1>
             <p
               style={{
-                fontSize: 24,
+                fontSize: 28,
                 color: "#4b5563",
                 textAlign: "center",
                 maxWidth: 800,
@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
             >
               {pollData.description.slice(0, 200)}
             </p>
-            <p style={{ fontSize: 22, color: "#6b46c1", fontWeight: "bold" }}>
+          <p style={{ fontSize: 24, color: "#6b46c1", fontWeight: "bold" }}>
               Total Votes: {totalVotes}
             </p>
           </div>
@@ -142,7 +142,7 @@ export async function GET(request: NextRequest) {
                     style={{
                       display: "flex",
                       justifyContent: "space-between",
-                      fontSize: 18,
+                      fontSize: 20,
                       fontWeight: "medium",
                     }}
                   >
@@ -154,7 +154,7 @@ export async function GET(request: NextRequest) {
                   <div
                     style={{
                       width: barWidth,
-                      height: 16,
+                      height: 20,
                       background: "linear-gradient(to right, #a78bfa, #60a5fa)",
                       borderRadius: 6,
                     }}
