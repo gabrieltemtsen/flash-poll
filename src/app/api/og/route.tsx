@@ -169,7 +169,7 @@ export async function GET(request: NextRequest) {
               <div key={index} className="group">
                 <div className="mb-1 flex items-center justify-between px-1">
                   <span className="truncate text-sm font-medium text-gray-800 sm:text-base">
-                    {option.text.slice(0, 30)}
+                    {option.text.slice(0, 30)} faq
                   </span>
                   <span className="text-sm font-semibold text-[#5b21b6]">
                     {percentage}%
