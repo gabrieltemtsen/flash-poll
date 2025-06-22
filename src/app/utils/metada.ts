@@ -1,21 +1,14 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Metadata } from "next";
-import { useQuery } from "convex/react";
 
 const APP_URL = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
-const APP_ICON_URL =
-  `${process.env.NEXT_PUBLIC_URL}/icon.png` || "http://localhost:3000/icon.png";
-const APP_SPLASH_URL =
-  `${process.env.NEXT_PUBLIC_URL}/logo.svg` || "http://localhost:3000/logo.svg";
-const APP_SPLASH_BACKGROUND_COLOR = "#6b46c1"; // Purple theme to match your UI
-const APP_OG_IMAGE_URL =
-  `${process.env.NEXT_PUBLIC_URL}/images/fastpoll-preview.png` ||
-  "http://localhost:3000/images/fastpoll-preview.png";
+const APP_ICON_URL = `${APP_URL}/icon.png`;
+const APP_SPLASH_URL = `${APP_URL}/logo.svg`;
+const APP_SPLASH_BACKGROUND_COLOR = "#6b46c1"; // Purple theme
+const APP_OG_IMAGE_URL = `${APP_URL}/images/fastpoll-preview.png`;
 const APP_BUTTON_TEXT = "View Poll";
 const APP_NAME = "Fast Poll";
 
-// Utility to generate dynamic OG image URLs (adapt to your setup)
+// Utility to generate dynamic OG image URLs
 const generateDynamicOGUrl = ({
   type,
   dataObject,
@@ -29,7 +22,7 @@ const generateDynamicOGUrl = ({
 };
 
 // Metadata for the main polls page
-export const generateMetadataForPollsHome = async (): Promise<Metadata> => {
+export async function generateMetadataForPollsHome(): Promise<Metadata> {
   const frame = {
     version: "next",
     imageUrl: APP_OG_IMAGE_URL,
@@ -81,20 +74,23 @@ export const generateMetadataForPollsHome = async (): Promise<Metadata> => {
 };
 
 // Metadata for individual poll pages
-export const generateMetadataForPoll = async ({
+export async function generateMetadataForPoll({
   params,
 }: {
-  params: { pollId: string };
-}): Promise<Metadata> => {
+  params: Promise<{ pollId: string }>; // Use Promise for async params
+}): Promise<Metadata> {
+  // Await params to get pollId
+  const { pollId } = await params;
+
   const frame = {
     version: "next",
-    imageUrl: `${APP_URL}/api/og?type=poll&pollId=${params.pollId}`,
+    imageUrl: `${APP_URL}/api/og?type=poll&pollId=${pollId}`,
     button: {
       title: APP_BUTTON_TEXT,
       action: {
         type: "launch_frame",
         name: APP_NAME,
-        url: `${APP_URL}/poll/${params.pollId}`,
+        url: `${APP_URL}/poll/${pollId}`,
         splashImageUrl: APP_SPLASH_URL,
         iconUrl: APP_ICON_URL,
         splashBackgroundColor: APP_SPLASH_BACKGROUND_COLOR,
@@ -102,13 +98,13 @@ export const generateMetadataForPoll = async ({
     },
   };
 
-  const defaultMetadata = {
+  const defaultMetadata: Metadata = {
     title: "Fast Poll - View Poll",
     description:
       "Vote and see real-time results on Fast Poll. Join the Farcaster community and share your opinion!",
     openGraph: {
       type: "website",
-      url: `${APP_URL}/poll/${params.pollId}`,
+      url: `${APP_URL}/poll/${pollId}`,
       title: "Fast Poll - View Poll",
       description:
         "Vote and see real-time results on Fast Poll. Join the Farcaster community and share your opinion!",
@@ -135,17 +131,14 @@ export const generateMetadataForPoll = async ({
     },
   };
 
-  if (!params.pollId) {
+  if (!pollId) {
     return defaultMetadata;
   }
 
   // Fetch poll data from Convex (server-side)
-  // Note: useQuery can't be used directly in server-side metadata generation.
-  // Instead, use Convex's server-side client or fetch via API.
   let poll;
   try {
-    // Example using a fetch to an API route that queries Convex
-    const response = await fetch(`${APP_URL}/api/poll/${params.pollId}`);
+    const response = await fetch(`${APP_URL}/api/poll/${pollId}`);
     poll = await response.json();
   } catch (error) {
     console.error("Error fetching poll:", error);
@@ -163,7 +156,7 @@ export const generateMetadataForPoll = async ({
       description: poll.description.slice(0, 600),
       totalVotes: poll.totalVotes.toString(),
       options: JSON.stringify(
-        poll.options.map((opt: any) => ({
+        poll.options.map((opt: { text: string; votes: number }) => ({
           text: opt.text,
           votes: opt.votes,
         }))
@@ -176,7 +169,7 @@ export const generateMetadataForPoll = async ({
     description: poll.description,
     openGraph: {
       type: "website",
-      url: `${APP_URL}/poll/${params.pollId}`,
+      url: `${APP_URL}/poll/${pollId}`,
       title: poll.title,
       description: poll.description,
       siteName: APP_NAME,
