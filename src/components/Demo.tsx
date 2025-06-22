@@ -15,7 +15,7 @@ import { ShareButton } from "./ui/Share";
 import { CheckCircle, Users, TrendingUp, Badge, Plus } from "lucide-react";
 import { Button } from "~/components/ui/Button";
 import { truncateAddress } from "~/lib/truncateAddress";
-import { base, degen, mainnet, optimism, unichain } from "wagmi/chains";
+import { base, degen, mainnet, optimism, unichain, lisk } from "wagmi/chains";
 import { BaseError, UserRejectedRequestError } from "viem";
 import { useMiniApp } from "@neynar/react";
 import { APP_NAME, APP_URL } from "~/lib/constants";
