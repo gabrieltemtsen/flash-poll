@@ -162,60 +162,29 @@ export async function GET(request: NextRequest) {
             </div>
 
             {/* Options */}
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "8px",
-              }}
-            >
-              {pollData.options.slice(0, 4).map((option, index) => {
-                const percentage = ((option.votes / totalVotesNum) * 100).toFixed(1);
-                return (
+                <div className="space-y-4">
+          {pollData.options.slice(0, 4).map((option, index) => {
+            const percentage = Math.round((option.votes / totalVotesNum) * 100);
+            return (
+              <div key={index} className="group">
+                <div className="mb-1 flex items-center justify-between px-1">
+                  <span className="truncate text-sm font-medium text-gray-800 sm:text-base">
+                    {option.text.slice(0, 30)}
+                  </span>
+                  <span className="text-sm font-semibold text-[#5b21b6]">
+                    {percentage}%
+                  </span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
                   <div
-                    key={index}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      padding: "8px",
-                      background: "#f8fafc",
-                      borderRadius: "8px",
-                      border: "1px solid #e5e7eb",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: "16px",
-                        height: "16px",
-                        borderRadius: "50%",
-                        border: "2px solid #5b21b6",
-                        background: option.votes > 0 ? "#5b21b6" : "transparent",
-                      }}
-                    />
-                    <span
-                      style={{
-                        fontSize: "clamp(11px, 1.6vw, 12px)",
-                        flex: 1,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                    >
-                      {option.text.slice(0, 30)}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "clamp(11px, 1.6vw, 12px)",
-                        fontWeight: "bold",
-                        color: "#5b21b6",
-                      }}
-                    >
-                      {percentage}%
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
+                    className="h-full rounded-full bg-[#5b21b6] transition-all duration-500"
+                    style={{ width: `${percentage}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
 
             {/* Footer */}
             <div
