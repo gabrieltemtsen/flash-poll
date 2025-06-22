@@ -80,10 +80,10 @@ export function ShareButton({ buttonText, cast, className = '', isLoading = fals
             url.searchParams.set('utm_source', `share-cast-${context?.user?.fid || 'unknown'}`);
 
             // If custom image generator is provided, use it
-            if (embed.imageUrl) {
-              const imageUrl = await embed.imageUrl();
-              url.searchParams.set('share_image_url', imageUrl);
-            }
+            // if (embed.imageUrl) {
+            //   const imageUrl = await embed.imageUrl();
+            //   url.searchParams.set('share_image_url', imageUrl);
+            // }
 
             return url.toString();
           }
