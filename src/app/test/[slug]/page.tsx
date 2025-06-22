@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { useQuery } from "convex/react";
 import { useMiniApp } from "@neynar/react";
 import { useParams, notFound } from "next/navigation";
+import sdk from "@farcaster/frame-sdk";
 import { CheckCircle, Users, Badge, Share2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/Button";
@@ -15,70 +16,43 @@ import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
 import { APP_URL } from "~/lib/constants";
 
-type PollPageParams = {
-  pollId: string;
-};
-
-interface PollOption {
-  id: string;
-  text: string;
-  votes: number;
-}
-
-interface Poll {
-  _id: Id<"polls">;
-  title: string;
-  description: string;
-  options: PollOption[];
-  totalVotes: number;
-  creatorFid: string;
-  createdAt: number;
-}
-
 export default function PollPage() {
-  const { pollId } = useParams<PollPageParams>();
+  const { id } = useParams<{ id: string }>();
   const { context } = useMiniApp();
   const userFid = context?.user?.fid?.toString();
 
-  // Fetch poll and vote status using useQuery
-  const poll = useQuery(api.polls.getPoll, pollId ? { pollId: pollId as Id<"polls"> } : "skip");
+  // Log pollId for debugging
+  useEffect(() => {
+    console.log("pollId:", id);
+  }, [id]);
+
+  // Fetch poll and vote status
+  const poll = useQuery(api.polls.getPoll, id ? { pollId: id as Id<"polls"> } : "skip");
   const voteStatus = useQuery(
     api.polls.hasVoted,
-    userFid && pollId ? { pollId: pollId as Id<"polls">, userFid } : "skip"
+    userFid && id ? { pollId: id as Id<"polls">, userFid } : "skip"
   );
 
-  // Defer notFound() to useEffect to avoid render-time side effects
+  // Log poll data for debugging
   useEffect(() => {
-    if (!pollId || (poll === null && poll !== undefined)) {
-      console.error("Poll not found or invalid pollId:", pollId);
-      notFound();
-    }
-  }, [pollId, poll]);
-
-  // Handle loading state
-  if (!pollId || poll === undefined) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-600">Loading...</p>
-      </div>
-    );
-  }
-
-  // Poll is null (not found) or undefined (still loading), handled above
-  if (!poll) {
-    return null; // This won't be reached due to useEffect, but kept for type safety
-  }
+    console.log("poll:", poll);
+  }, [poll]);
 
   const castConfig = {
-    text: `Check out this poll: ${poll.title || "Untitled"} on Flash Poll! @1 @2`,
+    text: `Check out this poll: ${poll?.title || "Untitled"} on Flash Poll! @1 @2`,
     bestFriends: true,
     embeds: [
       {
-        path: `/poll/${pollId}`,
-        imageUrl: async () => `${APP_URL}/api/opengraph-image?pollId=${pollId}`,
+        path: `/poll/${id}`,
+        imageUrl: async () => `${APP_URL}/api/opengraph-image?pollId=${id}`,
       },
     ],
   };
+
+  // Handle 404 for invalid pollId or missing poll
+  if (!id || !poll) {
+    notFound(); // Use Next.js notFound() for proper 404 handling
+  }
 
   const getPercentage = (votes: number, total: number): number => {
     return total > 0 ? Math.round((votes / total) * 100) : 0;
@@ -110,12 +84,12 @@ export default function PollPage() {
               </div>
               <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors shrink-0">
                 <Users className="w-3 h-3 mr-1" />
-                {poll.totalVotes}
+                {poll.totalVotes.toLocaleString()}
               </Badge>
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
-            {poll.options.map((option: PollOption, index: number) => {
+            {poll.options.map((option: any, index: number) => {
               const percentage = getPercentage(option.votes, poll.totalVotes);
               const isUserVote = voteStatus?.userVote === option.id;
 
