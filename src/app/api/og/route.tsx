@@ -157,7 +157,7 @@ export async function GET(request: NextRequest) {
                   margin: 0,
                 }}
               >
-                Total Votes: {totalVotes}
+                Total Votes: {totalVotes} faq
               </p>
             </div>
 
