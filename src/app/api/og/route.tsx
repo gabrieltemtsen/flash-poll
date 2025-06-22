@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
   };
 
   const totalVotesNum = parseInt(totalVotes, 10) || 1; // Avoid division by zero
-  const maxOptionWidth = 500; // Max width for vote bars
+const maxOptionWidth = 500; 
 
   try {
     return new ImageResponse(
@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
             >
               {pollData.description.slice(0, 200)}
             </p>
-            <p style={{ fontSize: 24, color: "#6b46c1", fontWeight: "bold" }}>
+          <p style={{ fontSize: 24, color: "#6b46c1", fontWeight: "bold" }}>
               Total Votes: {totalVotes}
             </p>
           </div>
