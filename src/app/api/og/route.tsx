@@ -40,15 +40,15 @@ export async function GET(request: NextRequest) {
             padding: 40,
           }}
         >
-          <h1 style={{ fontSize: 48, fontWeight: "bold", textAlign: "center" }}>
+          <h1 style={{ fontSize: 64, fontWeight: "bold", textAlign: "center" }}>
             Fast Poll
           </h1>
-          <p style={{ fontSize: 24, textAlign: "center", color: "#4b5563" }}>
+          <p style={{ fontSize: 28, textAlign: "center", color: "#4b5563" }}>
             Create and vote on polls instantly!
           </p>
         </div>
       ),
-      { width: 1200, height: 630 }
+      { width: 1200, height: 630 },
     );
   }
 
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
   };
 
   const totalVotesNum = parseInt(totalVotes, 10) || 1; // Avoid division by zero
-  const maxOptionWidth = 600; // Max width for vote bars
+  const maxOptionWidth = 500; // Max width for vote bars
 
   try {
     return new ImageResponse(
@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
           >
             <h1
               style={{
-                fontSize: 36,
+                fontSize: 60,
                 fontWeight: "bold",
                 textAlign: "center",
                 color: "#6b46c1",
@@ -107,7 +107,7 @@ export async function GET(request: NextRequest) {
             </h1>
             <p
               style={{
-                fontSize: 20,
+                fontSize: 28,
                 color: "#4b5563",
                 textAlign: "center",
                 maxWidth: 800,
@@ -115,21 +115,19 @@ export async function GET(request: NextRequest) {
             >
               {pollData.description.slice(0, 200)}
             </p>
-            <p
-              style={{ fontSize: 18, color: "#6b46c1", fontWeight: "bold" }}
-            >
+            <p style={{ fontSize: 24, color: "#6b46c1", fontWeight: "bold" }}>
               Total Votes: {totalVotes}
             </p>
           </div>
 
           {/* Options */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {pollData.options.map((option, index) => {
-              const percentage = (
-                (option.votes / totalVotesNum) *
-                100
-              ).toFixed(1);
-              const barWidth = (parseInt(percentage, 10) / 100) * maxOptionWidth;
+              const percentage = ((option.votes / totalVotesNum) * 100).toFixed(
+                1,
+              );
+              const barWidth =
+                (parseInt(percentage, 10) / 100) * maxOptionWidth;
 
               return (
                 <div
@@ -144,7 +142,7 @@ export async function GET(request: NextRequest) {
                     style={{
                       display: "flex",
                       justifyContent: "space-between",
-                      fontSize: 16,
+                      fontSize: 20,
                       fontWeight: "medium",
                     }}
                   >
@@ -156,7 +154,7 @@ export async function GET(request: NextRequest) {
                   <div
                     style={{
                       width: barWidth,
-                      height: 12,
+                      height: 20,
                       background: "linear-gradient(to right, #a78bfa, #60a5fa)",
                       borderRadius: 6,
                     }}
@@ -180,7 +178,7 @@ export async function GET(request: NextRequest) {
           </div>
         </div>
       ),
-      { width: 1200, height: 630 }
+      { width: 1200, height: 630 },
     );
   } catch (error) {
     console.error("Error generating image:", error);
@@ -200,15 +198,15 @@ export async function GET(request: NextRequest) {
             padding: 40,
           }}
         >
-          <h1 style={{ fontSize: 48, fontWeight: "bold", textAlign: "center" }}>
+          <h1 style={{ fontSize: 64, fontWeight: "bold", textAlign: "center" }}>
             Fast Poll
           </h1>
-          <p style={{ fontSize: 24, textAlign: "center", color: "#4b5563" }}>
+          <p style={{ fontSize: 28, textAlign: "center", color: "#4b5563" }}>
             Error generating poll image.
           </p>
         </div>
       ),
-      { width: 1200, height: 630 }
+      { width: 1200, height: 630 },
     );
   }
 }
