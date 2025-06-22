@@ -3,12 +3,23 @@ import { Metadata } from "next";
 const APP_URL = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
 const APP_ICON_URL = `${APP_URL}/icon.png`;
 const APP_SPLASH_URL = `${APP_URL}/logo.svg`;
-const APP_SPLASH_BACKGROUND_COLOR = "#6b46c1"; // Purple theme
+const APP_SPLASH_BACKGROUND_COLOR = "#6b46c1";
 const APP_OG_IMAGE_URL = `${APP_URL}/images/fastpoll-preview.png`;
 const APP_BUTTON_TEXT = "View Poll";
 const APP_NAME = "Fast Poll";
 
-// Utility to generate dynamic OG image URLs
+interface PollOption {
+  text: string;
+  votes: number;
+}
+
+interface Poll {
+  title: string;
+  description: string;
+  totalVotes: number;
+  options: PollOption[];
+}
+
 const generateDynamicOGUrl = ({
   type,
   dataObject,
@@ -21,7 +32,6 @@ const generateDynamicOGUrl = ({
   return `${baseUrl}?${params.toString()}`;
 };
 
-// Metadata for the main polls page
 export async function generateMetadataForPollsHome(): Promise<Metadata> {
   const frame = {
     version: "next",
@@ -73,30 +83,12 @@ export async function generateMetadataForPollsHome(): Promise<Metadata> {
   };
 };
 
-// Metadata for individual poll pages
 export async function generateMetadataForPoll({
   params,
 }: {
-  params: Promise<{ pollId: string }>; // Use Promise for async params
+  params: Promise<{ pollId: string }>;
 }): Promise<Metadata> {
-  // Await params to get pollId
   const { pollId } = await params;
-
-  const frame = {
-    version: "next",
-    imageUrl: `${APP_URL}/api/og?type=poll&pollId=${pollId}`,
-    button: {
-      title: APP_BUTTON_TEXT,
-      action: {
-        type: "launch_frame",
-        name: APP_NAME,
-        url: `${APP_URL}/poll/${pollId}`,
-        splashImageUrl: APP_SPLASH_URL,
-        iconUrl: APP_ICON_URL,
-        splashBackgroundColor: APP_SPLASH_BACKGROUND_COLOR,
-      },
-    },
-  };
 
   const defaultMetadata: Metadata = {
     title: "Fast Poll - View Poll",
@@ -127,7 +119,21 @@ export async function generateMetadataForPoll({
       images: [APP_OG_IMAGE_URL],
     },
     other: {
-      "fc:frame": JSON.stringify(frame),
+      "fc:frame": JSON.stringify({
+        version: "next",
+        imageUrl: APP_OG_IMAGE_URL,
+        button: {
+          title: APP_BUTTON_TEXT,
+          action: {
+            type: "launch_frame",
+            name: APP_NAME,
+            url: `${APP_URL}/poll/${pollId}`,
+            splashImageUrl: APP_SPLASH_URL,
+            iconUrl: APP_ICON_URL,
+            splashBackgroundColor: APP_SPLASH_BACKGROUND_COLOR,
+          },
+        },
+      }),
     },
   };
 
@@ -135,10 +141,12 @@ export async function generateMetadataForPoll({
     return defaultMetadata;
   }
 
-  // Fetch poll data from Convex (server-side)
-  let poll;
+  let poll: Poll | null = null;
   try {
-    const response = await fetch(`${APP_URL}/api/poll/${pollId}`);
+    const response = await fetch(`${APP_URL}/api/poll/${pollId}`, {
+      next: { revalidate: 60 },
+    });
+    if (!response.ok) throw new Error("Poll not found");
     poll = await response.json();
   } catch (error) {
     console.error("Error fetching poll:", error);
@@ -156,7 +164,7 @@ export async function generateMetadataForPoll({
       description: poll.description.slice(0, 600),
       totalVotes: poll.totalVotes.toString(),
       options: JSON.stringify(
-        poll.options.map((opt: { text: string; votes: number }) => ({
+        poll.options.map((opt) => ({
           text: opt.text,
           votes: opt.votes,
         }))
@@ -190,7 +198,21 @@ export async function generateMetadataForPoll({
       images: [ogImageUrl],
     },
     other: {
-      "fc:frame": JSON.stringify(frame),
+      "fc:frame": JSON.stringify({
+        version: "next",
+        imageUrl: ogImageUrl,
+        button: {
+          title: APP_BUTTON_TEXT,
+          action: {
+            type: "launch_frame",
+            name: APP_NAME,
+            url: `${APP_URL}/poll/${pollId}`,
+            splashImageUrl: APP_SPLASH_URL,
+            iconUrl: APP_ICON_URL,
+            splashBackgroundColor: APP_SPLASH_BACKGROUND_COLOR,
+          },
+        },
+      }),
     },
   };
 };
