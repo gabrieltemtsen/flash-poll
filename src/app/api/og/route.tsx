@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ImageResponse } from "@vercel/og";
 import { NextRequest } from "next/server";
 
@@ -155,67 +156,65 @@ export async function GET(request: NextRequest) {
           </div>
 
           {/* Options */}
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "12px",
-              flex: 1,
-              overflow: "hidden",
-              padding: "12px",
-              minWidth: "20%",
-            }}
-          >
-            {pollData.options.slice(0, 4).map((option, index) => {
-              const percentage = ((option.votes / totalVotesNum) * 100).toFixed(1);
-              const barWidth = Math.min(
-                (parseFloat(percentage) / 100) * maxOptionWidth,
-                maxOptionWidth
-              );
+<div
+  style={{
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
+    width: "100%",
+    maxWidth: "400px", // Constrain width like Google Forms
+    margin: "0 auto", // Center align
+    padding: "8px",
+    overflow: "hidden",
+  }}
+>
+  {pollData.options.slice(0, 4).map((option, index) => {
+    const percentage = ((option.votes / totalVotesNum) * 100).toFixed(1);
+    const barWidth = Math.min((parseFloat(percentage) / 100) * 300, 300); // Shorter bar
 
-              return (
-                <div
-                  key={index}
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "6px",
-                    background: "rgba(255, 255, 255, 0.95)",
-                    padding: "12px",
-                    borderRadius: "8px",
-                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "clamp(12px, 2vw, 14px)",
-                      fontWeight: "medium",
-                      color: "#1f2937",
-                    }}
-                  >
-                    <span style={{ maxWidth: "60%", overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {option.text.slice(0, 40)}
-                    </span>
-                    <span>
-                      {option.votes} ({percentage}%)
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      width: `${barWidth}px`,
-                      height: "10px",
-                      background: "linear-gradient(90deg, #a78bfa, #60a5fa)",
-                      borderRadius: "5px",
-                      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-                      transition: "width 0.3s ease", // Not functional in static images but good practice
-                    }}
-                  />
-                </div>
-              );
-            })}
-          </div>
+    return (
+      <div
+        key={index}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "4px",
+          background: "rgba(255, 255, 255, 0.95)",
+          padding: "8px",
+          borderRadius: "6px",
+          boxShadow: "0 1px 4px rgba(0, 0, 0, 0.05)",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            fontSize: "clamp(11px, 1.8vw, 13px)",
+            fontWeight: "medium",
+            color: "#1f2937",
+          }}
+        >
+          <span style={{ maxWidth: "70%", overflow: "hidden", textOverflow: "ellipsis" }}>
+            {option.text.slice(0, 30)} {/* Shorter text truncation */}
+          </span>
+          <span>
+            {option.votes} ({percentage}%)
+          </span>
+        </div>
+        <div
+          style={{
+            width: `${barWidth}px`,
+            height: "8px", // Thinner bar
+            background: "linear-gradient(90deg, #a78bfa, #60a5fa)",
+            borderRadius: "4px",
+            boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)",
+            transition: "width 0.3s ease",
+          }}
+        />
+      </div>
+    );
+  })}
+</div>
 
           {/* Footer */}
           <div
