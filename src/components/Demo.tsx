@@ -22,6 +22,7 @@ import { APP_NAME, APP_URL } from "~/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import Link from "next/link";
 import { PollCard } from "./poll/PollCard";
+import { PollCardSkeleton } from "./poll/PollCardSkeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
@@ -55,7 +56,7 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
   const chainId = useChainId();
 
   // Convex queries and mutations
-  const polls = useQuery(api.polls.getAllPolls, { limit: 10 }) || [];
+  const polls = useQuery(api.polls.getAllPolls, { limit: 10 });
   const addOrUpdateUser = useMutation(api.users.addOrUpdateUser);
   const voteMutation = useMutation(api.polls.vote);
   const createPollMutation = useMutation(api.polls.createPoll);
@@ -319,8 +320,20 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
       </div>
       <div className="container mx-auto px-4 py-8">
         <div className="space-y-8">
-          {polls.length > 0 ? (
-            polls.map((poll) => <PollCard key={poll._id} poll={poll} userFid={context?.user?.fid?.toString()} onVote={handleVote} isVoting={votingStates[poll._id]} />)
+          {polls === undefined ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <PollCardSkeleton key={i} />
+            ))
+          ) : polls.length > 0 ? (
+            polls.map((poll) => (
+              <PollCard
+                key={poll._id}
+                poll={poll}
+                userFid={context?.user?.fid?.toString()}
+                onVote={handleVote}
+                isVoting={votingStates[poll._id]}
+              />
+            ))
           ) : (
             <p className="text-center text-gray-500">No polls available.</p>
           )}
