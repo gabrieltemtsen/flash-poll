@@ -69,8 +69,6 @@ export async function GET(request: NextRequest) {
   };
 
   const totalVotesNum = parseInt(totalVotes, 10) || 1; // Avoid division by zero
-const maxOptionWidth = 500; 
-
   try {
     return new ImageResponse(
       (
@@ -92,73 +90,106 @@ const maxOptionWidth = 500;
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              marginBottom: 20,
+              marginBottom: 32,
+              padding: "0 32px",
             }}
           >
             <h1
               style={{
-                fontSize: 60,
+                fontSize: 56,
                 fontWeight: "bold",
                 textAlign: "center",
                 color: "#6b46c1",
+                maxWidth: 1000,
+                wordBreak: "break-word",
+                whiteSpace: "pre-wrap",
               }}
             >
-              {pollData.title.slice(0, 100)}
+              {pollData.title}
             </h1>
             <p
               style={{
                 fontSize: 28,
                 color: "#4b5563",
                 textAlign: "center",
-                maxWidth: 800,
+                maxWidth: 900,
+                marginTop: 12,
+                marginBottom: 24,
+                lineHeight: 1.3,
               }}
             >
-              {pollData.description.slice(0, 200)}
+              {pollData.description}
             </p>
-          <p style={{ fontSize: 24, color: "#6b46c1", fontWeight: "bold" }}>
+            <p
+              style={{ fontSize: 24, color: "#6b46c1", fontWeight: "bold" }}
+            >
               Total Votes: {totalVotes}
             </p>
           </div>
 
           {/* Options */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 20,
+              width: "100%",
+              maxWidth: 900,
+              alignSelf: "center",
+            }}
+          >
             {pollData.options.map((option, index) => {
               const percentage = ((option.votes / totalVotesNum) * 100).toFixed(
                 1,
               );
-              const barWidth =
-                (parseInt(percentage, 10) / 100) * maxOptionWidth;
-
               return (
                 <div
                   key={index}
                   style={{
                     display: "flex",
                     flexDirection: "column",
-                    gap: 4,
+                    gap: 6,
                   }}
                 >
                   <div
                     style={{
                       display: "flex",
+                      alignItems: "center",
                       justifyContent: "space-between",
-                      fontSize: 20,
-                      fontWeight: "medium",
+                      fontSize: 24,
+                      fontWeight: "bold",
                     }}
                   >
-                    <span>{option.text.slice(0, 50)}</span>
-                    <span>
-                      {option.votes} votes ({percentage}%)
+                    <span
+                      style={{ flex: 1, marginRight: 16, wordBreak: "break-word" }}
+                    >
+                      {option.text}
+                    </span>
+                    <span
+                      style={{ width: 160, textAlign: "right", fontWeight: "normal" }}
+                    >
+                      {option.votes} ({percentage}%)
                     </span>
                   </div>
                   <div
                     style={{
-                      width: barWidth,
+                      position: "relative",
+                      width: "100%",
                       height: 20,
-                      background: "linear-gradient(to right, #a78bfa, #60a5fa)",
-                      borderRadius: 6,
+                      backgroundColor: "#E5E7EB",
+                      borderRadius: 8,
+                      overflow: "hidden",
                     }}
-                  />
+                  >
+                    <div
+                      style={{
+                        width: `${percentage}%`,
+                        height: "100%",
+                        background: "linear-gradient(to right, #a78bfa, #60a5fa)",
+                        borderRadius: 8,
+                      }}
+                    />
+                  </div>
                 </div>
               );
             })}
