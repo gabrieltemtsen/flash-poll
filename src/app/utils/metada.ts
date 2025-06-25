@@ -6,7 +6,7 @@ const APP_SPLASH_URL = `${APP_URL}/logo.svg`;
 const APP_SPLASH_BACKGROUND_COLOR = "#6b46c1";
 const APP_OG_IMAGE_URL = `${APP_URL}/images/fastpoll-preview.png`;
 const APP_BUTTON_TEXT = "View Poll";
-const APP_NAME = "Fast Poll";
+const APP_NAME = "Flash Poll";
 
 interface PollOption {
   text: string;
@@ -50,31 +50,31 @@ export async function generateMetadataForPollsHome(): Promise<Metadata> {
   };
 
   return {
-    title: "Fast Poll - Share Your Opinion",
+    title: "Flash Poll - Share Your Opinion",
     description:
-      "Fast Poll lets you create and vote on polls instantly. Join the community on Farcaster and see what others think in real-time!",
+      "Flash Poll lets you create and vote on polls instantly. Join the community on Farcaster and see what others think in real-time!",
     openGraph: {
       type: "website",
       url: APP_URL,
-      title: "Fast Poll - Share Your Opinion",
+      title: "Flash Poll - Share Your Opinion",
       description:
-        "Fast Poll lets you create and vote on polls instantly. Join the community on Farcaster and see what others think in real-time!",
+        "Flash Poll lets you create and vote on polls instantly. Join the community on Farcaster and see what others think in real-time!",
       siteName: APP_NAME,
       images: [
         {
           url: APP_OG_IMAGE_URL,
           width: 1200,
           height: 630,
-          alt: "Fast Poll - Share Your Opinion",
+          alt: "Flash Poll - Share Your Opinion",
         },
       ],
       locale: "en_US",
     },
     twitter: {
       card: "summary_large_image",
-      title: "Fast Poll - Share Your Opinion",
+      title: "Flash Poll - Share Your Opinion",
       description:
-        "Fast Poll lets you create and vote on polls instantly. Join the community on Farcaster and see what others think in real-time!",
+        "Flash Poll lets you create and vote on polls instantly. Join the community on Farcaster and see what others think in real-time!",
       images: [APP_OG_IMAGE_URL],
     },
     other: {
@@ -91,31 +91,31 @@ export async function generateMetadataForPoll({
   const { pollId } = await params;
 
   const defaultMetadata: Metadata = {
-    title: "Fast Poll - View Poll",
+    title: "Flash Poll - View Poll",
     description:
-      "Vote and see real-time results on Fast Poll. Join the Farcaster community and share your opinion!",
+      "Vote and see real-time results on Flash Poll. Join the Farcaster community and share your opinion!",
     openGraph: {
       type: "website",
       url: `${APP_URL}/poll/${pollId}`,
-      title: "Fast Poll - View Poll",
+      title: "Flash Poll - View Poll",
       description:
-        "Vote and see real-time results on Fast Poll. Join the Farcaster community and share your opinion!",
+        "Vote and see real-time results on Flash Poll. Join the Farcaster community and share your opinion!",
       siteName: APP_NAME,
       images: [
         {
           url: APP_OG_IMAGE_URL,
           width: 1200,
           height: 630,
-          alt: "Fast Poll",
+          alt: "Flash Poll",
         },
       ],
       locale: "en_US",
     },
     twitter: {
       card: "summary_large_image",
-      title: "Fast Poll - View Poll",
+      title: "Flash Poll - View Poll",
       description:
-        "Vote and see real-time results on Fast Poll. Join the Farcaster community and share your opinion!",
+        "Vote and see real-time results on Flash Poll. Join the Farcaster community and share your opinion!",
       images: [APP_OG_IMAGE_URL],
     },
     other: {

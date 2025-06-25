@@ -18,7 +18,7 @@ interface PollData {
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const type = searchParams.get("type");
-  const title = searchParams.get("title") || "Fast Poll";
+  const title = searchParams.get("title") || "Flash Poll";
   const description = searchParams.get("description") || "Share your opinion!";
   const totalVotes = searchParams.get("totalVotes") || "0";
   const optionsRaw = searchParams.get("options");
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
               lineHeight: "1.2",
             }}
           >
-            Fast Poll
+            Flash Poll
           </h1>
           <p
             style={{
@@ -227,7 +227,7 @@ export async function GET(request: NextRequest) {
                 marginTop: "8px",
               }}
             >
-              Powered by Fast Poll
+              Powered by Flash Poll
             </div>
           </div>
         </div>
@@ -259,7 +259,7 @@ export async function GET(request: NextRequest) {
               textAlign: "center",
             }}
           >
-            Fast Poll
+            Flash Poll
           </h1>
           <p
             style={{

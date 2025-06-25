@@ -52,7 +52,7 @@ export default function PollFrame() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-white to-[#f0f9ff]">
         <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-lg">
-          <h1 className="mb-2 text-center text-2xl font-bold text-[#5b21b6]">Fast Poll</h1>
+          <h1 className="mb-2 text-center text-2xl font-bold text-[#5b21b6]">Flash Poll</h1>
           <p className="text-center text-gray-600">Error loading poll: {error || "Not found"}</p>
         </div>
       </div>
@@ -104,7 +104,7 @@ export default function PollFrame() {
 
         {/* Footer */}
         <div className="mt-6 text-center text-xs text-gray-400">
-          Powered by <span className="font-medium text-[#5b21b6]">Fast Poll</span>
+          Powered by <span className="font-medium text-[#5b21b6]">Flash Poll</span>
         </div>
       </div>
     </div>
