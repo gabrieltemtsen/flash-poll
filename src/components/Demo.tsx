@@ -12,7 +12,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 import { ShareButton } from "./ui/Share";
-import { CheckCircle, Users, TrendingUp, Badge, Plus } from "lucide-react";
+import { CheckCircle, Users, TrendingUp, Plus, X } from "lucide-react";
 import { Button } from "~/components/ui/Button";
 import { truncateAddress } from "~/lib/truncateAddress";
 import { base, degen, mainnet, optimism, unichain, lisk } from "wagmi/chains";
@@ -62,12 +62,12 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
   const createPollMutation = useMutation(api.polls.createPoll);
   const [votingStates, setVotingStates] = useState<Record<string, boolean>>({});
 
-  // Register user with Convex when authenticated
+  // Register user with Convex whenever Farcaster context is available
   useEffect(() => {
-    if (context?.user?.fid && isConnected && address) {
+    if (context?.user?.fid) {
       addOrUpdateUser({
         fid: context.user.fid.toString(),
-        address,
+        address: isConnected && address ? address : undefined,
         username: context.user.username,
       }).catch((error) => console.error("Failed to register user:", error));
     }
@@ -179,6 +179,11 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
       setCreatePollError("Please sign in with Farcaster to vote");
       return;
     }
+    await addOrUpdateUser({
+      fid: context.user.fid.toString(),
+      address: isConnected && address ? address : undefined,
+      username: context.user.username,
+    });
     setVotingStates((prev) => ({ ...prev, [pollId]: true }));
     try {
       await voteMutation({
@@ -199,6 +204,11 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
       setCreatePollError("Please sign in with Farcaster to create a poll");
       return;
     }
+    await addOrUpdateUser({
+      fid: context.user.fid.toString(),
+      address: isConnected && address ? address : undefined,
+      username: context.user.username,
+    });
     if (!pollForm.title || !pollForm.description) {
       setCreatePollError("Title and description are required");
       return;
@@ -346,50 +356,59 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
           if (!open) setCreatePollError(null);
         }}
       >
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Create a New Poll</DialogTitle>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader className="text-center">
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-purple-500 to-blue-500 bg-clip-text text-transparent">
+              Create a New Poll
+            </DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
               <Label htmlFor="title">Poll Title</Label>
               <Input
                 id="title"
                 value={pollForm.title}
-                onChange={(e) => setPollForm((prev) => ({ ...prev, title: e.target.value }))}
+                onChange={(e) =>
+                  setPollForm((prev) => ({ ...prev, title: e.target.value }))
+                }
                 placeholder="Enter poll title"
               />
             </div>
-            <div className="grid gap-2">
+            <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
                 value={pollForm.description}
-                onChange={(e) => setPollForm((prev) => ({ ...prev, description: e.target.value }))}
+                onChange={(e) =>
+                  setPollForm((prev) => ({ ...prev, description: e.target.value }))
+                }
                 placeholder="Enter poll description"
               />
             </div>
             {pollForm.options.map((option, index) => (
               <div key={index} className="flex gap-2 items-center">
                 <Input
+                  className="flex-1"
                   value={option.text}
                   onChange={(e) => updateOption(index, e.target.value)}
                   placeholder={`Option ${index + 1}`}
                 />
                 {pollForm.options.length > 2 && (
-                  <Button
+                  <button
+                    type="button"
                     onClick={() => removeOption(index)}
+                    className="text-red-500 hover:text-red-700"
                   >
-                    Remove
-                  </Button>
+                    <X className="w-5 h-5" />
+                  </button>
                 )}
               </div>
             ))}
-            <Button onClick={addOption} className="mt-2">
-              Add Option
+            <Button onClick={addOption} className="mt-2 flex items-center gap-2 w-auto">
+              <Plus className="w-4 h-4" /> Add Option
             </Button>
             {createPollError && (
-              <p className="text-red-500 text-sm">{createPollError}</p>
+              <p className="text-red-500 text-sm text-center">{createPollError}</p>
             )}
           </div>
           <DialogFooter>
@@ -398,10 +417,13 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
                 setIsCreatePollOpen(false);
                 setCreatePollError(null);
               }}
+              className="w-auto bg-gray-500 hover:bg-gray-600"
             >
               Cancel
             </Button>
-            <Button onClick={handleCreatePoll}>Create Poll</Button>
+            <Button onClick={handleCreatePoll} className="w-auto">
+              Create Poll
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
