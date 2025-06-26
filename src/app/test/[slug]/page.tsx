@@ -39,8 +39,7 @@ export default function PollPage() {
   }, [poll]);
 
   const castConfig = {
-    text: `Check out this poll: ${poll?.title || "Untitled"} on Flash Poll! @1 @2`,
-    bestFriends: true,
+    text: `Check out this poll: ${poll?.title || 'Untitled'} on Flash Poll! Flash Poll by @gabedev.eth`,
     embeds: [
       {
         path: `/poll/${id}`,
