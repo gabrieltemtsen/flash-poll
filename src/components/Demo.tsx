@@ -386,7 +386,7 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
               />
             </div>
             {pollForm.options.map((option, index) => (
-              <div key={index} className="flex gap-2 items-center">
+              <div key={index} className="flex items-center gap-3">
                 <Input
                   className="flex-1"
                   value={option.text}
@@ -397,31 +397,34 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
                   <button
                     type="button"
                     onClick={() => removeOption(index)}
-                    className="text-red-500 hover:text-red-700"
+                    className="text-red-500 hover:text-red-700 p-1 rounded-md border border-red-300"
                   >
-                    <X className="w-5 h-5" />
+                    <X className="w-4 h-4" />
                   </button>
                 )}
               </div>
             ))}
-            <Button onClick={addOption} className="mt-2 flex items-center gap-2 w-auto">
+            <Button
+              onClick={addOption}
+              className="mt-2 flex items-center gap-2 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
+            >
               <Plus className="w-4 h-4" /> Add Option
             </Button>
             {createPollError && (
-              <p className="text-red-500 text-sm text-center">{createPollError}</p>
+              <p className="text-red-500 text-sm text-center mt-1">{createPollError}</p>
             )}
           </div>
-          <DialogFooter>
+          <DialogFooter className="mt-4 gap-2">
             <Button
               onClick={() => {
                 setIsCreatePollOpen(false);
                 setCreatePollError(null);
               }}
-              className="w-auto bg-gray-500 hover:bg-gray-600"
+              className="bg-gray-500 hover:bg-gray-600 w-full sm:w-auto"
             >
               Cancel
             </Button>
-            <Button onClick={handleCreatePoll} className="w-auto">
+            <Button onClick={handleCreatePoll} className="w-full sm:w-auto">
               Create Poll
             </Button>
           </DialogFooter>
