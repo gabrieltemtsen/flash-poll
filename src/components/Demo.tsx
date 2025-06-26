@@ -404,7 +404,7 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
                 )}
               </div>
             ))}
-            <Button onClick={addOption} className="mt-2 flex items-center gap-2 w-auto">
+            <Button onClick={addOption} className="mt-2 inline-flex items-center gap-2 w-auto px-4 py-2 text-sm">
               <Plus className="w-4 h-4" /> Add Option
             </Button>
             {createPollError && (
@@ -417,11 +417,11 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
                 setIsCreatePollOpen(false);
                 setCreatePollError(null);
               }}
-              className="w-auto bg-gray-500 hover:bg-gray-600"
+              className="w-auto bg-gray-500 hover:bg-gray-600 px-4 py-2 text-sm inline-flex"
             >
               Cancel
             </Button>
-            <Button onClick={handleCreatePoll} className="w-auto">
+            <Button onClick={handleCreatePoll} className="w-auto px-4 py-2 text-sm inline-flex">
               Create Poll
             </Button>
           </DialogFooter>
