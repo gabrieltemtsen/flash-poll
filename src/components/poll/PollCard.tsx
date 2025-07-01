@@ -40,7 +40,7 @@ export function PollCard({ poll, userFid, onVote, isVoting = false, showShareBut
   );
 
   const castConfig = {
-    text: `Check out this poll: ${poll.title} on Flash Poll! Flash Poll by @gabedev.eth`,
+    text: `Check out this poll: ${poll.title} on Flash Poll by @gabedev.eth!`,
     embeds: [
       {
         path: `/poll/${poll._id}`,

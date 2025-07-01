@@ -31,7 +31,9 @@ export function ShareButton({ buttonText, cast, className = '', isLoading = fals
     try {
       setIsProcessing(true);
 
-      const finalText = cast.text || 'Check out this poll on Flash Poll! Flash Poll by @gabedev.eth';
+      const finalText =
+        cast.text ||
+        'Check out this poll on Flash Poll by @gabedev.eth!';
 
       // Process embeds
       const processedEmbeds = await Promise.all(
