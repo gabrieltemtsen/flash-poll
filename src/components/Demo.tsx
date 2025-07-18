@@ -18,7 +18,7 @@ import { truncateAddress } from "~/lib/truncateAddress";
 import { base, degen, mainnet, optimism, unichain, lisk } from "wagmi/chains";
 import { BaseError, UserRejectedRequestError } from "viem";
 import { useMiniApp } from "@neynar/react";
-import { APP_NAME, APP_URL } from "~/lib/constants";
+import { APP_NAME, APP_URL, USE_WALLET } from "~/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import Link from "next/link";
 import { PollCard } from "./poll/PollCard";
@@ -27,11 +27,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
 import { Label } from "~/components/ui/label";
+import { Header } from "./ui/Header";
+import { Footer } from "./ui/Footer";
 
 export type Tab = "home" | "actions" | "context" | "wallet";
 
 interface NeynarUser {
-  fid: string;
+  fid: number;
   score: number;
 }
 
@@ -300,7 +302,10 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex flex-col">
+      <div className="p-4">
+        <Header neynarUser={neynarUser} />
+      </div>
       <div className="bg-white/70 backdrop-blur-md border-b border-purple-100 sticky top-0 z-10">
         <div className="container mx-auto px-4 py-6">
           <div className="text-center">
@@ -431,6 +436,9 @@ export default function Demo({ title = "Flash Poll" }: { title?: string }) {
         <div className="container mx-auto px-4 py-8 text-center">
           <p className="text-gray-500 text-sm">Powered by Lisk</p>
         </div>
+      </div>
+      <div className="mt-auto pt-4">
+        <Footer activeTab={activeTab} setActiveTab={setActiveTab} showWallet={USE_WALLET} />
       </div>
     </div>
   );
