@@ -33,7 +33,7 @@ import { Footer } from "./ui/Footer";
 export type Tab = "home" | "actions" | "context" | "wallet";
 
 interface NeynarUser {
-  fid: string;
+  fid: number;
   score: number;
 }
 
